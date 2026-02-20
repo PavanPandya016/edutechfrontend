@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import svgPaths from '../../imports/svg-go1x4xx39u';
@@ -58,6 +59,15 @@ export default function Workshop() {
     { month: 'Feb', day: '4', title: 'Artificial Intelligence', time: '15:00 - 17:00', location: 'Gujarat university', bgColor: 'bg-[#6fa7b8]' }
   ];
 
+  const [filter, setFilter] = useState('all');
+
+  const upcomingEvents = events.slice(0, 3);
+  const pastEvents = events.slice(3);
+
+  let displayed = events;
+  if (filter === 'upcoming') displayed = upcomingEvents;
+  else if (filter === 'past') displayed = pastEvents;
+
   return (
     <div className="bg-white flex flex-col min-h-screen">
       <Header />
@@ -80,17 +90,35 @@ export default function Workshop() {
         </div>
       </div>
 
-      {/* Events Grid */}
+      {/* Filter toggle */}
+      <div className="py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex justify-center">
+          {['all', 'upcoming', 'past'].map((opt) => (
+            <button
+              key={opt}
+              onClick={() => setFilter(opt)}
+              className={`px-4 py-2 first:rounded-l-lg last:rounded-r-lg border border-[#14627a] font-semibold text-sm sm:text-base transition-colors focus:outline-none ${
+                filter === opt
+                  ? 'bg-[#14627a] text-white'
+                  : 'bg-white text-[#14627a] hover:bg-[#ecf8fb]'
+              }`}
+            >
+              {opt === 'all'
+                ? 'All Events'
+                : opt === 'upcoming'
+                ? 'Upcoming'
+                : 'Past'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Events Grid (filtered) */}
       <div className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {events.slice(0, 3).map((event, index) => (
-              <EventCard key={index} {...event} />
-            ))}
-          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.slice(3).map((event, index) => (
-              <EventCard key={index + 3} {...event} />
+            {displayed.map((event, index) => (
+              <EventCard key={index} {...event} />
             ))}
           </div>
         </div>
