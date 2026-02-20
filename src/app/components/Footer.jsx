@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import svgPaths from "../../imports/svg-go1x4xx39u";
 
 function SocialMediaLogo() {

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import "bootstrap-icons/font/bootstrap-icons.css";
 

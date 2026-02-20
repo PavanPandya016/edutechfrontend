@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'motion/react'; // you can also import from 'framer-motion'
+import { motion } from 'motion/react'; 
 import { Search, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';

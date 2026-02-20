@@ -1,377 +1,584 @@
-import { useParams, Link } from 'react-router';
-import { motion } from 'motion/react';
+import { motion } from "motion/react";
+import { useState, useEffect } from "react";
+import { useParams } from 'react-router-dom';
+import svgPaths from "../../imports/svg-bu925ghury";
+
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
 export default function BlogDetail() {
   const { id } = useParams();
+  const [activeSection, setActiveSection] = useState(null);
 
-  // Mock blog post data - in real app, fetch based on id
-  const post = {
-    id: id,
-    title: 'Why Most React Developers Fail Those Simple Interview Questions Even Know the Answers',
-    excerpt: 'A deep dive into common React interview pitfalls and how to avoid them',
-    content: `
-      <p>React has become one of the most popular JavaScript libraries for building user interfaces, and as a result, React interviews have become increasingly common. However, many developers who are proficient in React find themselves struggling with seemingly simple interview questions.</p>
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
 
-      <h2>The Problem</h2>
-      <p>The issue isn't necessarily a lack of knowledge. Most React developers can build complex applications, implement state management, and optimize performance. Yet, when faced with basic interview questions, they often stumble.</p>
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = document.querySelectorAll("[data-section]");
+      sections.forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top >= 0 && rect.top <= 300) {
+          setActiveSection(section.getAttribute("data-section"));
+        }
+      });
+    };
 
-      <h2>Common Pitfalls</h2>
-      <h3>1. Understanding vs. Explanation</h3>
-      <p>Many developers understand React concepts intuitively but struggle to articulate them clearly. For example, they might know how to use useEffect, but find it difficult to explain the dependency array or cleanup functions in simple terms.</p>
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-      <h3>2. Practical Experience vs. Theoretical Knowledge</h3>
-      <p>Building applications is different from understanding the underlying principles. Interview questions often test theoretical knowledge that you might not encounter in day-to-day development.</p>
-
-      <h3>3. The Pressure Factor</h3>
-      <p>Interview pressure can cause even experienced developers to second-guess themselves. Simple questions become complicated when you're being evaluated.</p>
-
-      <h2>How to Prepare</h2>
-      <h3>1. Practice Explaining Concepts</h3>
-      <p>Don't just know how to use React features—practice explaining them to others. This helps solidify your understanding and improves your communication skills.</p>
-
-      <h3>2. Study the Fundamentals</h3>
-      <p>Go back to basics. Review the React documentation, focusing on sections you might have skimmed over initially. Understanding the "why" behind React's design decisions is crucial.</p>
-
-      <h3>3. Mock Interviews</h3>
-      <p>Practice with peers or use online platforms for mock interviews. This helps reduce anxiety and improves your ability to think clearly under pressure.</p>
-
-      <h2>Key Takeaways</h2>
-      <p>Success in React interviews requires more than just coding skills. You need to:</p>
-      <ul>
-        <li>Understand concepts at a deep level</li>
-        <li>Communicate clearly and confidently</li>
-        <li>Handle pressure effectively</li>
-        <li>Bridge the gap between practical and theoretical knowledge</li>
-      </ul>
-
-      <h2>Conclusion</h2>
-      <p>If you've struggled with React interview questions despite being a capable developer, you're not alone. The key is to recognize that interview success requires a different skill set than day-to-day development. By focusing on communication, theoretical understanding, and practice, you can significantly improve your interview performance.</p>
-    `,
-    author: {
-      name: 'Sarah Johnson',
-      bio: 'Senior React Developer with 8+ years of experience',
-      avatar: 'SJ'
-    },
-    date: 'February 23, 2024',
-    readTime: '8 min read',
-    category: 'React',
-    tags: ['React', 'JavaScript', 'Interviews', 'Career'],
-    image: 'https://images.unsplash.com/photo-1614492898637-435e0f87cef8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdHVkZW50JTIwZGFzaGJvYXJkJTIwbGVhcm5pbmd8ZW58MXx8fHwxNzcxMzM4NjIyfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    views: 12453,
-    likes: 856
+  // Animation variants
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0 }
   };
 
-  const relatedPosts = [
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const scaleIn = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: { opacity: 1, scale: 1 }
+  };
+
+  const relatedCourses = [
+    {
+      id: 1,
+      title: "Complete React Developer Course",
+      description: "Master React from basics to advanced concepts with hands-on projects",
+      instructor: "Jane Doe",
+      duration: "24 hours",
+      level: "Beginner to Advanced",
+      rating: 4.8,
+      students: "45,230",
+      price: "$79.99",
+      image: "https://images.unsplash.com/photo-1762330910399-95caa55acf04?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvbmxpbmUlMjBsZWFybmluZyUyMGNvdXJzZSUyMGVkdWNhdGlvbnxlbnwxfHx8fDE3NzE1NDQyMTV8MA&ixlib=rb-4.1.0&q=80&w=1080"
+    },
     {
       id: 2,
-      title: 'Announcing Azure DevOps Server General Availability',
-      image: 'https://images.unsplash.com/photo-1762330917920-141e05d4eb9b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvbmxpbmUlMjBjb3Vyc2UlMjBjZXJ0aWZpY2F0ZXxlbnwxfHx8fDE3NzEzMzg2MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-      date: 'Jun 23, 2024',
-      readTime: '11 min read'
+      title: "React Interview Preparation",
+      description: "Ace your React interviews with common questions and practical solutions",
+      instructor: "John Smith",
+      duration: "8 hours",
+      level: "Intermediate",
+      rating: 4.9,
+      students: "22,450",
+      price: "$49.99",
+      image: "https://images.unsplash.com/photo-1540397106260-e24a507a08ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWIlMjBkZXZlbG9wbWVudCUyMGNvZGluZyUyMGxhcHRvcHxlbnwxfHx8fDE3NzE1MTg5MDR8MA&ixlib=rb-4.1.0&q=80&w=1080"
     },
     {
       id: 3,
-      title: 'Boards integration with GitHub Copilot and feature',
-      image: 'https://images.unsplash.com/photo-1759052063465-0877c85f2c5a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9ncmVzcyUyMGFjaGlldmVtZW50fGVufDF8fHx8MTc3MTMzODYyMnww&ixlib=rb-4.1.0&q=80&w=1080',
-      date: 'Jun 23, 2024',
-      readTime: '10 min read'
+      title: "JavaScript Fundamentals for React",
+      description: "Build a strong JavaScript foundation before diving into React development",
+      instructor: "Sarah Johnson",
+      duration: "16 hours",
+      level: "Beginner",
+      rating: 4.7,
+      students: "38,900",
+      price: "$59.99",
+      image: "https://images.unsplash.com/photo-1568716353609-12ddc5c67f04?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXZhc2NyaXB0JTIwcHJvZ3JhbW1pbmclMjB0dXRvcmlhbHxlbnwxfHx8fDE3NzE2MDM2OTF8MA&ixlib=rb-4.1.0&q=80&w=1080"
+    }
+  ];
+
+  const suggestions = [
+    {
+      id: 1,
+      type: "article",
+      title: "10 Common React Mistakes and How to Avoid Them",
+      readTime: "5 min read"
+    },
+    {
+      id: 2,
+      type: "video",
+      title: "React Hooks Deep Dive - Complete Tutorial",
+      readTime: "45 min watch"
+    },
+    {
+      id: 3,
+      type: "workshop",
+      title: "Building Real-World React Applications Workshop",
+      readTime: "3 hours"
+    },
+    {
+      id: 4,
+      type: "article",
+      title: "State Management in React: A Complete Guide",
+      readTime: "8 min read"
     }
   ];
 
   return (
-    <div className="bg-white flex flex-col min-h-screen">
+    <div className="bg-gradient-to-b from-white to-gray-50 min-h-screen">
+      {/* Header */}
       <Header />
 
-      {/* Hero Image */}
-      <motion.div 
-        className="relative h-[400px] md:h-[500px]"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <ImageWithFallback
-          src={post.image}
-          alt={post.title}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-            >
-              <span className="inline-block bg-[#14627a] px-4 py-2 rounded-full font-['Public_Sans:SemiBold',sans-serif] text-[14px] text-white mb-4">
-                {post.category}
-              </span>
-              <h1 className="font-['Public_Sans:Bold',sans-serif] text-[32px] md:text-[48px] text-white leading-tight mb-4">
-                {post.title}
-              </h1>
-              <div className="flex flex-wrap items-center gap-4 text-white">
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-[#ffc27a] rounded-full flex items-center justify-center">
-                    <span className="font-['Public_Sans:SemiBold',sans-serif] text-[16px] text-white">
-                      {post.author.avatar}
-                    </span>
-                  </div>
-                  <span className="font-['Public_Sans:Medium',sans-serif] text-[16px]">
-                    {post.author.name}
-                  </span>
-                </div>
-                <span>•</span>
-                <span className="font-['Public_Sans:Regular',sans-serif] text-[14px]">
-                  {post.date}
-                </span>
-                <span>•</span>
-                <span className="font-['Public_Sans:Regular',sans-serif] text-[14px]">
-                  {post.readTime}
-                </span>
-                <span>•</span>
-                <span className="font-['Public_Sans:Regular',sans-serif] text-[14px]">
-                  {post.views.toLocaleString()} views
-                </span>
-              </div>
-            </motion.div>
+      {/* Main Content */}
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+
+        {/* Blog Title */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUp}
+          transition={{ duration: 0.6 }}
+          className="mb-6 sm:mb-8"
+        >
+          <h1 className="font-['Public_Sans:SemiBold',sans-serif] text-3xl sm:text-4xl lg:text-[48px] lg:leading-[60px] bg-gradient-to-r from-[#101828] via-[#1e2939] to-[#101828] bg-clip-text text-transparent mb-4">
+            Why Most React Developers Fail Those Simple Interview
+            Questions Even Know the Answers
+          </h1>
+          <div className="flex items-center gap-3">
+            <span className="font-['Merriweather:Regular',sans-serif] text-sm text-[#4a5565]">
+              Aug 1, 2025
+            </span>
+            <div className="bg-[#99a1af] rounded-full size-1" />
+            <span className="font-['Merriweather:Regular',sans-serif] text-sm text-[#4a5565]">
+              7 min read
+            </span>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {/* Article Content */}
-      <div className="py-12 px-4">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="prose prose-lg max-w-none"
-          >
-            {/* Social Share Buttons */}
-            <div className="flex items-center gap-4 mb-8 pb-8 border-b border-[#e7e9eb]">
-              <motion.button
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f8f9fa] hover:bg-[#e7e9eb] transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <svg className="w-5 h-5 text-[#14627a]" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-                </svg>
-                <span className="font-['Public_Sans:Medium',sans-serif] text-[14px] text-[#1b1d1f]">
-                  {post.likes}
-                </span>
-              </motion.button>
-              
-              <motion.button
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f8f9fa] hover:bg-[#e7e9eb] transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <svg className="w-5 h-5 text-[#14627a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-                <span className="font-['Public_Sans:Medium',sans-serif] text-[14px] text-[#1b1d1f]">
-                  Share
-                </span>
-              </motion.button>
+        {/* Hero Image */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={scaleIn}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="mb-10 sm:mb-12"
+        >
+          <img
+            src="https://www.techmagic.co/blog/content/images/2024/07/cover-React-1.png"
+            alt="Blog Hero"
+            className="w-full max-w-[880px] mx-auto rounded-xl sm:rounded-[14px] shadow-lg"
+          />
+        </motion.div>
 
-              <motion.button
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f8f9fa] hover:bg-[#e7e9eb] transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <svg className="w-5 h-5 text-[#14627a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-                <span className="font-['Public_Sans:Medium',sans-serif] text-[14px] text-[#1b1d1f]">
-                  Save
-                </span>
-              </motion.button>
-            </div>
-
-            {/* Article Body */}
-            <div 
-              className="article-content font-['Public_Sans:Regular',sans-serif] text-[18px] text-[#363a3d] leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-              style={{
-                '& h2': {
-                  fontSize: '32px',
-                  fontWeight: '600',
-                  color: '#1b1d1f',
-                  marginTop: '48px',
-                  marginBottom: '24px'
-                },
-                '& h3': {
-                  fontSize: '24px',
-                  fontWeight: '600',
-                  color: '#1b1d1f',
-                  marginTop: '32px',
-                  marginBottom: '16px'
-                },
-                '& p': {
-                  marginBottom: '24px',
-                  lineHeight: '1.8'
-                },
-                '& ul, & ol': {
-                  marginLeft: '24px',
-                  marginBottom: '24px'
-                },
-                '& li': {
-                  marginBottom: '12px'
-                }
-              }}
+        {/* Author Info */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUp}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="flex items-center gap-4 mb-10 sm:mb-12"
+        >
+          <div className="relative flex-shrink-0">
+            <div className="absolute bg-gradient-to-r from-[#9810fa] to-[#e60076] rounded-full size-[68px] blur-[8px] opacity-50" />
+            <img
+              src="https://images.unsplash.com/photo-1737575655055-e3967cbefd03?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBkZXZlbG9wZXIlMjBwb3J0cmFpdHxlbnwxfHx8fDE3NzE1ODE3MzF8MA&ixlib=rb-4.1.0&q=80&w=1080"
+              alt="Spongebob"
+              className="relative rounded-full size-[64px] shadow-[0px_0px_0px_4px_white,0px_10px_15px_-3px_rgba(0,0,0,0.1)] object-cover"
             />
+          </div>
+          <div>
+            <p className="font-['Merriweather:Bold',sans-serif] text-lg text-[#101828]">
+              Spongebob
+            </p>
+            <p className="font-['Roboto:Regular',sans-serif] text-sm text-[#4a5565]">
+              Technical Writer
+            </p>
+          </div>
+        </motion.div>
 
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 mt-12 pt-8 border-t border-[#e7e9eb]">
-              {post.tags.map((tag, index) => (
-                <motion.span
-                  key={index}
-                  className="px-4 py-2 rounded-full bg-[#f8f9fa] font-['Public_Sans:Medium',sans-serif] text-[14px] text-[#6d737a] hover:bg-[#e7e9eb] cursor-pointer"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+        {/* Table of Contents */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={scaleIn}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="bg-[rgba(255,255,255,0.8)] backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)] border-b-4 border-r-2 border-[rgba(0,0,0,0.2)] mb-10 sm:mb-12"
+        >
+          <h3 className="font-['Merriweather:Bold',sans-serif] text-2xl text-[#101828] mb-6">
+            In this article
+          </h3>
+          <ul className="space-y-2">
+            {[
+              { label: "1. What is React", section: "section1" },
+              { label: "2. How to learn React", section: "section2" },
+              { label: "3. Why React is easy", section: "section3" }
+            ].map((item) => (
+              <li
+                key={item.section}
+                onClick={() => {
+                  const el = document.querySelector(`[data-section="${item.section}"]`);
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                className={`group relative flex flex-col cursor-pointer rounded-lg transition-all duration-200 overflow-hidden
+                  ${activeSection === item.section ? 'bg-[#eaf4f7]' : 'hover:bg-[#f4fafc]'}`}
+              >
+                {/* Left active bar */}
+                <span
+                  className={`absolute left-0 top-0 h-full w-[4px] rounded-r-full transition-all duration-300
+                    ${activeSection === item.section
+                      ? 'bg-[#14627a] opacity-100'
+                      : 'bg-[#14627a] opacity-0 group-hover:opacity-40'}`}
+                />
+                <span
+                  className={`pl-5 pr-4 py-3 font-['Merriweather:Regular',sans-serif] text-base sm:text-lg transition-all duration-200
+                    ${activeSection === item.section
+                      ? 'text-[#14627a] font-semibold translate-x-1'
+                      : 'text-[#364153] group-hover:text-[#14627a] group-hover:translate-x-1'}`}
                 >
-                  #{tag}
-                </motion.span>
-              ))}
-            </div>
+                  {item.label}
+                </span>
+                {/* Animated underline */}
+                <span
+                  className={`block h-[2px] bg-[#14627a] rounded-full mx-5 transition-all duration-300 origin-left
+                    ${activeSection === item.section
+                      ? 'scale-x-100 opacity-100 mb-2'
+                      : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-60 mb-2'}`}
+                />
+              </li>
+            ))}
+          </ul>
+        </motion.div>
 
-            {/* Author Card */}
-            <motion.div 
-              className="mt-12 p-8 bg-[#f8f9fa] rounded-xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-            >
-              <div className="flex items-start gap-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-[#14627a] to-[#6fa7b8] rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="font-['Public_Sans:Bold',sans-serif] text-[24px] text-white">
-                    {post.author.avatar}
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-['Public_Sans:SemiBold',sans-serif] text-[20px] text-[#1b1d1f] mb-2">
-                    {post.author.name}
-                  </h3>
-                  <p className="font-['Public_Sans:Regular',sans-serif] text-[16px] text-[#6d737a] mb-4">
-                    {post.author.bio}
-                  </p>
-                  <motion.button
-                    className="px-6 py-2 rounded-lg bg-[#14627a] text-white font-['Public_Sans:Medium',sans-serif] text-[14px]"
-                    whileHover={{ scale: 1.05, boxShadow: "0 5px 15px rgba(20, 98, 122, 0.3)" }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Follow
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
+        {/* Quote Section */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={fadeInUp}
+          transition={{ duration: 0.6 }}
+          className="bg-gradient-to-r from-[#fffbeb] to-[#fff7ed] border-l-4 border-[#ff9b00] rounded-tr-2xl rounded-br-2xl p-6 sm:p-8 shadow-[0px_10px_15px_0px_rgba(0,0,0,0.1)] mb-10 sm:mb-12"
+        >
+          <p className="font-['Roboto:Medium',sans-serif] text-lg sm:text-2xl text-[#364153] leading-relaxed">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ultrices dui diam arcu
+            pharetra at laoreet pellentesque. Imperdiet sit ut ornare nulla risus id fames
+            nascetur urna. Eros in neque tincidunt.
+          </p>
+        </motion.div>
+
+        {/* Blog Content Sections */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+          variants={staggerContainer}
+          className="space-y-8 mb-16"
+        >
+          <motion.p
+            variants={fadeInUp}
+            className="font-['Roboto:Regular',sans-serif] text-lg sm:text-xl text-[#364153] leading-relaxed"
+          >
+            Amet aliquet at a aliquam ac suspendisse euismod. Lectus sit in ut erat in. Et
+            nulla a magna amet, amet. Sodales malesuada laoreet bibendum neque amet turpis non.
+            Ac arcu lacus turpis elementum imperdiet. Euismod purus, libero scelerisque vitae,
+            libero fermentum urna, nunc.
+          </motion.p>
+
+          <motion.p
+            variants={fadeInUp}
+            className="font-['Roboto:Regular',sans-serif] text-lg sm:text-xl text-[#364153] leading-relaxed"
+          >
+            Vel leo proin facilisis metus sit ut cursus sagittis. Diam donec mus malesuada et ac
+            vulputate. Aenean lacinia suspendisse et mattis adipiscing id dictum commodo nunc.
+          </motion.p>
+
+          {/* Section 1 */}
+          <motion.div
+            variants={fadeInUp}
+            data-section="section1"
+            className="pt-8 space-y-4 sm:space-y-6 scroll-mt-24"
+          >
+            <h2 className="font-['Public_Sans:SemiBold',sans-serif] text-2xl sm:text-4xl text-black">
+              1. What is React
+            </h2>
+            <p className="font-['Roboto:Regular',sans-serif] text-lg sm:text-xl text-[#364153] leading-relaxed">
+              Dignissim lacus sit congue lacus aliquam. Ut non fermentum vulputate donec enim
+              sed ornare scelerisque. Sollicitudin orci leo egestas fermentum platea a imperdiet nisl.
+            </p>
           </motion.div>
 
-          {/* Related Posts */}
-          <div className="mt-16">
-            <h2 className="font-['Public_Sans:SemiBold',sans-serif] text-[32px] text-[#1b1d1f] mb-8">
-              Related Articles
+          {/* Section 2 */}
+          <motion.div
+            variants={fadeInUp}
+            data-section="section2"
+            className="pt-8 space-y-4 sm:space-y-6 scroll-mt-24"
+          >
+            <h2 className="font-['Public_Sans:SemiBold',sans-serif] text-2xl sm:text-4xl bg-gradient-to-r from-[#155dfc] to-[#0092b8] bg-clip-text text-transparent">
+              2. How to learn React
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {relatedPosts.map((related, index) => (
-                <motion.div
-                  key={related.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 + index * 0.1, duration: 0.5 }}
-                >
-                  <Link
-                    to={`/blog/${related.id}`}
-                    className="block group"
-                  >
-                    <div className="relative h-48 rounded-xl overflow-hidden mb-4">
-                      <ImageWithFallback
-                        src={related.image}
-                        alt={related.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                    </div>
-                    <h3 className="font-['Public_Sans:SemiBold',sans-serif] text-[20px] text-[#1b1d1f] mb-2 group-hover:text-[#14627a] transition-colors">
-                      {related.title}
-                    </h3>
-                    <div className="flex items-center gap-3 text-[#6d737a]">
-                      <span className="font-['Public_Sans:Regular',sans-serif] text-[14px]">
-                        {related.date}
-                      </span>
-                      <span>•</span>
-                      <span className="font-['Public_Sans:Regular',sans-serif] text-[14px]">
-                        {related.readTime}
-                      </span>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+            <p className="font-['Roboto:Regular',sans-serif] text-lg sm:text-xl text-[#364153] leading-relaxed">
+              Dignissim lacus sit congue lacus aliquam. Ut non fermentum vulputate donec enim
+              sed ornare scelerisque. Sollicitudin orci leo egestas fermentum platea a imperdiet nisl.
+            </p>
+          </motion.div>
 
-          {/* Comments Section */}
-          <div className="mt-16">
-            <h2 className="font-['Public_Sans:SemiBold',sans-serif] text-[32px] text-[#1b1d1f] mb-8">
-              Comments (24)
+          {/* Section 3 */}
+          <motion.div
+            variants={fadeInUp}
+            data-section="section3"
+            className="pt-8 space-y-4 sm:space-y-6 scroll-mt-24"
+          >
+            <h2 className="font-['Public_Sans:SemiBold',sans-serif] text-2xl sm:text-4xl bg-gradient-to-r from-[#009966] to-[#009689] bg-clip-text text-transparent">
+              3. Why React is easy
             </h2>
-            
-            {/* Comment Form */}
-            <div className="mb-8">
-              <textarea
-                placeholder="Add a comment..."
-                className="w-full p-4 border border-[#e7e9eb] rounded-xl font-['Public_Sans:Regular',sans-serif] text-[16px] focus:outline-none focus:ring-2 focus:ring-[#14627a] resize-none"
-                rows="4"
-              ></textarea>
-              <motion.button
-                className="mt-4 px-6 py-3 rounded-lg bg-[#14627a] text-white font-['Public_Sans:SemiBold',sans-serif] text-[16px]"
-                whileHover={{ scale: 1.05, boxShadow: "0 5px 15px rgba(20, 98, 122, 0.3)" }}
-                whileTap={{ scale: 0.95 }}
+            <p className="font-['Roboto:Regular',sans-serif] text-lg sm:text-xl text-[#364153] leading-relaxed">
+              Dignissim lacus sit congue lacus aliquam. Ut non fermentum vulputate donec enim
+              sed ornare scelerisque. Sollicitudin orci leo egestas fermentum platea a imperdiet nisl.
+            </p>
+          </motion.div>
+        </motion.div>
+
+        {/* Suggestions Section */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={staggerContainer}
+          className="mb-16"
+        >
+          <motion.h2
+            variants={fadeInUp}
+            className="font-['Merriweather:Bold',sans-serif] text-3xl sm:text-4xl text-[#101828] mb-8"
+          >
+            Recommended for You
+          </motion.h2>
+          {/* 1 col on mobile, 2 cols on sm+ */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            {suggestions.map((suggestion) => (
+              <motion.div
+                key={suggestion.id}
+                variants={scaleIn}
+                whileHover={{ scale: 1.03, y: -5 }}
+                className="bg-white p-5 sm:p-6 rounded-xl sm:rounded-[12px] shadow-lg cursor-pointer border border-gray-100 hover:border-[#14627a] transition-all"
               >
-                Post Comment
-              </motion.button>
-            </div>
-
-            {/* Sample Comments */}
-            {[1, 2, 3].map((comment) => (
-              <div key={comment} className="border-t border-[#e7e9eb] pt-6 mb-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#14627a] to-[#6fa7b8] rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="font-['Public_Sans:SemiBold',sans-serif] text-[16px] text-white">
-                      U
-                    </span>
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${
+                      suggestion.type === "article"
+                        ? "bg-blue-100 text-blue-700"
+                        : suggestion.type === "video"
+                        ? "bg-purple-100 text-purple-700"
+                        : "bg-green-100 text-green-700"
+                    }`}
+                  >
+                    {suggestion.type.toUpperCase()}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h4 className="font-['Public_Sans:SemiBold',sans-serif] text-[16px] text-[#1b1d1f]">
-                        User Name
-                      </h4>
-                      <span className="font-['Public_Sans:Regular',sans-serif] text-[14px] text-[#6d737a]">
-                        2 days ago
-                      </span>
-                    </div>
-                    <p className="font-['Public_Sans:Regular',sans-serif] text-[16px] text-[#6d737a] mb-3">
-                      Great article! This really helped me understand the common pitfalls in React interviews.
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-['Merriweather:Bold',sans-serif] text-base sm:text-lg text-[#101828] mb-2">
+                      {suggestion.title}
+                    </h3>
+                    <p className="font-['Roboto:Regular',sans-serif] text-sm text-[#4a5565]">
+                      {suggestion.readTime}
                     </p>
-                    <div className="flex items-center gap-4">
-                      <button className="font-['Public_Sans:Medium',sans-serif] text-[14px] text-[#14627a] hover:underline">
-                        Reply
-                      </button>
-                      <button className="font-['Public_Sans:Medium',sans-serif] text-[14px] text-[#6d737a] hover:text-[#14627a]">
-                        👍 12
-                      </button>
-                    </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
-      </div>
+        </motion.div>
 
+        {/* Related Courses Section */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={staggerContainer}
+          className="mb-16"
+        >
+          <motion.div variants={fadeInUp} className="mb-8">
+            <h2 className="font-['Merriweather:Bold',sans-serif] text-3xl sm:text-4xl text-[#101828] mb-3">
+              Continue Learning React
+            </h2>
+            <p className="font-['Roboto:Regular',sans-serif] text-base sm:text-lg text-[#4a5565]">
+              Take your React skills to the next level with these recommended courses
+            </p>
+          </motion.div>
+
+          {/* 1 col → 2 cols on md → 3 cols on lg */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {relatedCourses.map((course) => (
+              <motion.div
+                key={course.id}
+                variants={scaleIn}
+                whileHover={{ scale: 1.05, y: -10 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="bg-white rounded-2xl shadow-xl overflow-hidden cursor-pointer group"
+              >
+                <div className="relative h-48 sm:h-[200px] overflow-hidden">
+                  <img
+                    src={course.image}
+                    alt={course.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute top-3 right-3 bg-[#14627a] text-white px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold">
+                    {course.level}
+                  </div>
+                </div>
+
+                <div className="p-5 sm:p-6">
+                  <h3 className="font-['Merriweather:Bold',sans-serif] text-lg sm:text-xl text-[#101828] mb-3">
+                    {course.title}
+                  </h3>
+                  <p className="font-['Roboto:Regular',sans-serif] text-sm text-[#4a5565] mb-4 line-clamp-2">
+                    {course.description}
+                  </p>
+
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-[#ffc27a] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                      </svg>
+                      <span className="font-['Roboto:Medium',sans-serif] text-sm text-[#364153]">
+                        {course.rating} ({course.students} students)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[#4a5565]">
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="font-['Roboto:Regular',sans-serif] text-sm">{course.duration}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[#4a5565]">
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      <span className="font-['Roboto:Regular',sans-serif] text-sm">{course.instructor}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <span className="font-['Public_Sans:SemiBold',sans-serif] text-xl sm:text-2xl text-[#14627a]">
+                      {course.price}
+                    </span>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="bg-[#14627a] text-white px-4 sm:px-5 py-2.5 rounded-lg font-['Public_Sans:Medium',sans-serif] text-sm hover:bg-[#0f4a5c] transition-colors"
+                    >
+                      Enroll Now
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Keep Reading Section */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={staggerContainer}
+          className="mb-16"
+        >
+          <motion.h2
+            variants={fadeInUp}
+            className="font-['Merriweather:Bold',sans-serif] text-3xl sm:text-4xl text-[#101828] mb-8 sm:mb-12"
+          >
+            Keep reading
+          </motion.h2>
+
+          {/* 1 col → 2 cols on md → 3 cols on lg */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {[
+              {
+                image: "https://images.unsplash.com/photo-1667984390553-7f439e6ae401?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjbG91ZCUyMGNvbXB1dGluZyUyMHRlY2hub2xvZ3l8ZW58MXx8fHwxNzcxNTEzNTU0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+                title: "Announcing Azure DevOps Server General Availability",
+                description: "Et vitae, mollis euismod lobortis blandit amet sed amet. Amet ut amet nisl tortor arcu non id nulla mauris neque nisl magna."
+              },
+              {
+                image: "https://images.unsplash.com/photo-1654277041218-84424c78f0ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnaXRodWIlMjBkZXZvcHMlMjBjb2Rpbmd8ZW58MXx8fHwxNzcxNjAzODg0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+                title: "Modern DevOps Practices for 2025",
+                description: "Et vitae, mollis euismod lobortis blandit amet sed amet. Amet ut amet nisl tortor arcu non id nulla mauris neque nisl magna."
+              },
+              {
+                image: "https://images.unsplash.com/photo-1748256622734-92241ae7b43f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzb2Z0d2FyZSUyMGVuZ2luZWVyaW5nJTIwdGVhbXxlbnwxfHx8fDE3NzE2MDM4ODR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+                title: "DevOps and GitHub Repositories — Next Steps in the Path to Agentic AI",
+                description: "Rutrum aliquet eros semper nunc. In adipiscing augue sagittis, fermentum donec nunc lacinia."
+              }
+            ].map((article, index) => (
+              <motion.div
+                key={index}
+                variants={scaleIn}
+                whileHover={{ scale: 1.05, y: -10 }}
+                className="bg-[rgba(255,255,255,0.8)] rounded-2xl shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1)] overflow-hidden cursor-pointer"
+              >
+                <div className="h-48 sm:h-[224px] overflow-hidden">
+                  <motion.img
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ duration: 0.5 }}
+                    src={article.image}
+                    alt={article.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-5 sm:p-6">
+                  <h3 className="font-['Merriweather:Bold',sans-serif] text-xl sm:text-2xl text-[#101828] leading-snug mb-3">
+                    {article.title}
+                  </h3>
+                  <p className="font-['Roboto:Regular',sans-serif] text-sm sm:text-base text-[#4a5565] leading-relaxed">
+                    {article.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Author Bio */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+          variants={fadeInUp}
+          transition={{ duration: 0.6 }}
+          className="bg-gradient-to-r from-white to-gray-50 rounded-2xl p-6 sm:p-10 lg:p-12 shadow-lg border border-gray-100"
+        >
+          <div className="flex flex-col sm:flex-row items-start gap-6 sm:gap-8">
+            <div className="relative flex-shrink-0">
+              <div className="absolute bg-gradient-to-r from-[#9810fa] to-[#e60076] rounded-full size-24 blur-[12px] opacity-50" />
+              <img
+                src="https://images.unsplash.com/photo-1737575655055-e3967cbefd03?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBkZXZlbG9wZXIlMjBwb3J0cmFpdHxlbnwxfHx8fDE3NzE1ODE3MzF8MA&ixlib=rb-4.1.0&q=80&w=1080"
+                alt="Spongebob"
+                className="relative rounded-full size-24 shadow-xl object-cover"
+              />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-['Merriweather:Regular',sans-serif] text-2xl sm:text-3xl text-[#101828] mb-4">
+                Written by Spongebob
+              </h3>
+              <p className="font-['Roboto:Regular',sans-serif] text-base sm:text-lg text-[#4a5565] leading-relaxed mb-6">
+                Volutpat cursus id id tincidunt duis id. Urna curabitur ultrices molestie
+                bibendum. Purus orci nisl, commodo ipsum, ut urna, elementum.
+              </p>
+              <div className="flex gap-3">
+                {[
+                  { icon: svgPaths.p2276e2c0, color: "#1877F2" },
+                  { icon: svgPaths.p4926900, color: "#E4405F" },
+                  { icon: svgPaths.p30498500, color: "#0A66C2" }
+                ].map((social, index) => (
+                  <motion.button
+                    key={index}
+                    whileHover={{ scale: 1.2, y: -5 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="bg-gray-100 hover:bg-[#14627a] p-3 rounded-lg transition-colors group"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 20 20" fill={social.color}>
+                      <path d={social.icon} className="group-hover:fill-white transition-colors" />
+                    </svg>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </main>
+
+      {/* Footer */}
       <Footer />
     </div>
   );
-}
+} 

@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router';
+import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import Header from '../components/Header';
