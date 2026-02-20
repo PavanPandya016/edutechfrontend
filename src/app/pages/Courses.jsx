@@ -155,28 +155,28 @@ function CourseCard({ course }) {
 
       <div className="p-5 flex flex-col flex-1">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-blue-600 text-[10px] font-black uppercase tracking-tight">
+          <span className="text-[#14627a] text-[10px] font-black uppercase tracking-tight">
             {course.category}
           </span>
-          <span className="text-yellow-500 text-xs font-bold">
+          <span className="text-[#FFC27A] text-xs font-bold">
             ★ {course.rating}
           </span>
         </div>
 
-        <h3 className="text-base font-bold text-gray-900 mb-2 leading-tight h-10 line-clamp-2">
+        <h3 className="text-base font-bold text-[#06213d] mb-2 leading-tight h-10 line-clamp-2">
           {course.title}
         </h3>
-        <p className="text-gray-500 text-xs mb-4 line-clamp-2 flex-1">
+        <p className="text-[#6d737a] text-xs mb-4 line-clamp-2 flex-1">
           {course.description}
         </p>
 
         <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
-          <p className="text-base font-black text-gray-900">
+          <p className="text-base font-black text-[#06213d]">
             {course.price === 0 ? 'FREE' : `$${course.price}`}
           </p>
           <Link
             to={`/course/${course.id}`}
-            className="bg-gray-900 text-white px-4 py-2 rounded-lg font-bold text-xs hover:bg-blue-600 transition-colors"
+            className="bg-[#14627a] text-white px-4 py-2 rounded-lg font-bold text-xs hover:bg-[#125364] transition-colors"
           >
             View
           </Link>
@@ -205,7 +205,7 @@ function FiltersSidebar({
   return (
     <aside className="w-full lg:w-72 space-y-8 bg-white p-6 rounded-2xl shadow-sm h-fit sticky top-6 border border-gray-100">
       <div>
-        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">
+        <label className="block text-sm font-bold text-[#06213d] mb-2 uppercase tracking-wider">
           Search
         </label>
         <input
@@ -213,12 +213,12 @@ function FiltersSidebar({
           placeholder="What do you want to learn?"
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full p-3 bg-gray-50 rounded-xl focus:ring-1 focus:ring-blue-500 outline-none border border-gray-200 transition-all text-sm"
+          className="w-full p-3 bg-gray-50 rounded-xl focus:ring-1 focus:ring-[#14627a] outline-none border border-gray-200 transition-all text-sm"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">
+        <label className="block text-sm font-bold text-[#06213d] mb-3 uppercase tracking-wider">
           Pricing
         </label>
         <div className="space-y-2">
@@ -231,9 +231,16 @@ function FiltersSidebar({
                 type="checkbox"
                 checked={p.checked}
                 onChange={p.onChange}
-                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="
+                  w-4 h-4 rounded border-gray-300
+                  accent-[#14627a]             /* tick + background when checked */
+                  checked:bg-[#14627a]         /* background on check */
+                  checked:border-[#14627a]
+                  focus:ring-[#14627a]
+                  transition-colors
+                "
               />
-              <span className="text-gray-600 group-hover:text-gray-900 text-sm transition-colors">
+              <span className="text-gray-600 group-hover:text-[#06213d] text-sm transition-colors">
                 {p.label}
               </span>
             </label>
@@ -242,7 +249,7 @@ function FiltersSidebar({
       </div>
 
       <div>
-        <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">
+        <label className="block text-sm font-bold text-[#06213d] mb-3 uppercase tracking-wider">
           Difficulty Level
         </label>
         <div className="space-y-2">
@@ -252,9 +259,16 @@ function FiltersSidebar({
                 type="checkbox"
                 checked={selectedLevels.includes(lvl)}
                 onChange={() => toggleLevel(lvl)}
-                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="
+                  w-4 h-4 rounded border-gray-300
+                  accent-[#14627a]             /* tick + background when checked */
+                  checked:bg-[#14627a]         /* background on check */
+                  checked:border-[#14627a]
+                  focus:ring-[#14627a]
+                  transition-colors
+                "
               />
-              <span className="text-gray-600 group-hover:text-gray-900 text-sm transition-colors">
+              <span className="text-gray-600 group-hover:text-[#06213d] text-sm transition-colors">
                 {lvl}
               </span>
             </label>
@@ -263,7 +277,7 @@ function FiltersSidebar({
       </div>
 
       <div>
-        <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">
+        <label className="block text-sm font-bold text-[#06213d] mb-3 uppercase tracking-wider">
           Categories
         </label>
         <div className="flex flex-wrap gap-2">
@@ -273,7 +287,7 @@ function FiltersSidebar({
               onClick={() => toggleCategory(cat)}
               className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
                 selectedCategories.includes(cat)
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-[#14627a] text-white'
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -286,7 +300,7 @@ function FiltersSidebar({
       {hasActive && (
         <button
           onClick={clear}
-          className="w-full mt-4 py-2 border-t border-gray-100 text-blue-600 text-xs font-bold uppercase tracking-widest hover:text-blue-800 transition-colors text-center"
+          className="w-full mt-4 py-2 border-t border-gray-100 text-[#14627a] text-xs font-bold uppercase tracking-widest hover:text-[#125364] transition-colors text-center"
         >
           Clear All Filters
         </button>
