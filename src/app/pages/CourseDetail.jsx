@@ -100,7 +100,7 @@ export default function CourseDetail() {
       <Header />
 
       {/* Hero Section */}
-      <motion.div 
+      <motion.div
         className="bg-gradient-to-r from-[#14627a] to-[#0183AB] py-12 px-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -130,7 +130,7 @@ export default function CourseDetail() {
                 </p>
               </motion.div>
 
-              <motion.div 
+              <motion.div
                 className="flex flex-wrap items-center gap-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -158,7 +158,7 @@ export default function CourseDetail() {
                 </div>
               </motion.div>
 
-              <motion.div 
+              <motion.div
                 className="flex items-center gap-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -181,7 +181,7 @@ export default function CourseDetail() {
             </div>
 
             {/* Enrollment Card - Desktop */}
-            <motion.div 
+            <motion.div
               className="hidden lg:block"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -195,7 +195,7 @@ export default function CourseDetail() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                
+
                 <div className="mb-6">
                   <div className="flex items-baseline gap-3 mb-2">
                     <span className="font-['Public_Sans:Bold',sans-serif] text-[36px] text-[#14627a]">
@@ -405,7 +405,7 @@ export default function CourseDetail() {
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-3 gap-4 pt-6 border-t border-[#e7e9eb]">
                       <div className="text-center">
                         <p className="font-['Public_Sans:Bold',sans-serif] text-[24px] text-[#14627a]">
@@ -527,7 +527,7 @@ export default function CourseDetail() {
       </div>
 
       {/* Mobile Enrollment Bar */}
-      <motion.div 
+      <motion.div
         className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#e7e9eb] p-4 shadow-lg z-40"
         initial={{ y: 100 }}
         animate={{ y: 0 }}
