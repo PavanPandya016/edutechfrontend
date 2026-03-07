@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import svgPaths from "../../imports/svg-go1x4xx39u";
@@ -40,9 +40,30 @@ function Lock() {
 ========================= */
 export default function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
+
+  /* =========================
+     Logout Handler
+  ========================= */
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("applicantName");
+    localStorage.removeItem("applicantEmail");
+    localStorage.removeItem("applicantPhone");
+    localStorage.removeItem("applicantEducation");
+    localStorage.removeItem("applicantCourse");
+    
+    setIsLoggedIn(false);
+    setUserName("");
+    setIsMenuOpen(false);
+    navigate("/");
+  };
 
   /* =========================
      Auth Check
@@ -73,11 +94,7 @@ export default function Header() {
     { path: "/blog", label: "Blog" },
     { path: "/workshop", label: "Workshop" },
   ];
-
-  const navLinks = isLoggedIn
-    ? [...baseLinks, { path: "/dashboard", label: "Dashboard" }]
-    : baseLinks;
-
+  
   const isActive = (path) => location.pathname === path;
 
   const toggleMenu = () => {
@@ -113,7 +130,7 @@ export default function Header() {
              Desktop Navigation
           ========================= */}
           <div className="hidden lg:flex items-center gap-2">
-            {navLinks.map((link, index) => (
+            {baseLinks.map((link, index) => (
               <motion.div
                 key={link.path}
                 initial={{ opacity: 0, y: -10 }}
@@ -160,11 +177,19 @@ export default function Header() {
                 </Link>
               </>
             ) : (
-              <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-gray-100">
-                <div className="w-8 h-8 bg-[#14627a] rounded-full flex items-center justify-center text-white font-semibold">
-                  {userName?.[0]?.toUpperCase() || "U"}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-gray-100">
+                  <div className="w-8 h-8 bg-[#14627a] rounded-full flex items-center justify-center text-white font-semibold">
+                    {userName?.[0]?.toUpperCase() || "U"}
+                  </div>
+                  <span className="text-sm">{userName}</span>
                 </div>
-                <span className="text-sm">{userName}</span>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all font-medium"
+                >
+                  Logout
+                </button>
               </div>
             )}
           </div>
@@ -193,7 +218,7 @@ export default function Header() {
             exit={{ opacity: 0, height: 0 }}
           >
             <div className="px-4 py-4 space-y-2">
-              {navLinks.map((link) => (
+              {baseLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
@@ -224,9 +249,17 @@ export default function Header() {
                     </Link>
                   </>
                 ) : (
-                  <div className="px-4 py-3 bg-gray-100 rounded-lg">
-                    <p className="font-medium">{userName}</p>
-                    <p className="text-sm text-gray-500">Logged in</p>
+                  <div className="space-y-3">
+                    <div className="px-4 py-3 bg-gray-100 rounded-lg">
+                      <p className="font-medium">{userName}</p>
+                      <p className="text-sm text-gray-500">Logged in</p>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full px-4 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all font-medium"
+                    >
+                      Logout
+                    </button>
                   </div>
                 )}
               </div>

@@ -1,19 +1,42 @@
-import { motion } from "motion/react";
-import { useState, useEffect } from "react";
-import { useParams } from 'react-router-dom';
-import svgPaths from "../../imports/svg-bu925ghury";
-
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import blogService from "../services/blogService";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function BlogDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [blog, setBlog] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    const role = localStorage.getItem('userRole');
+    setUserRole(role);
+
+    const data = blogService.getBlogById(id);
+    if (data) {
+      setBlog(data);
+    }
+    setLoading(false);
+  }, [id]);
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, []);
+  }, [id]);
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this blog post? This action cannot be undone.")) {
+      const success = blogService.deleteBlog(parseInt(id));
+      if (success) {
+        navigate('/blog');
+      } else {
+        alert("Failed to delete the blog post. Note: Default blogs cannot be deleted.");
+      }
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -117,6 +140,30 @@ export default function BlogDetail() {
     }
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#14627a]"></div>
+      </div>
+    );
+  }
+
+  if (!blog) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <Header />
+        <div className="flex-1 flex flex-col items-center justify-center p-4">
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">Blog Post Not Found</h2>
+          <p className="text-gray-600 mb-8">The post you're looking for doesn't exist or has been removed.</p>
+          <Link to="/blog" className="bg-[#14627a] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#0f4a5b] transition-all">
+            Back to Blog
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gradient-to-b from-white to-gray-50 min-h-screen">
       {/* Header */}
@@ -124,6 +171,28 @@ export default function BlogDetail() {
 
       {/* Main Content */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+
+        {/* Admin Actions */}
+        {(userRole === 'admin' || userRole === 'editor') && !blog.isDefault && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 flex gap-4 justify-end"
+          >
+            <Link
+              to={`/blog/editor/${id}`}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-[#14627a] text-[#14627a] rounded-lg font-semibold hover:bg-[#14627a]/5 transition-all"
+            >
+              ✏️ Edit Post
+            </Link>
+            <button
+              onClick={handleDelete}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-red-500 text-red-500 rounded-lg font-semibold hover:bg-red-50 transition-all"
+            >
+              🗑️ Delete Post
+            </button>
+          </motion.div>
+        )}
 
         {/* Blog Title */}
         <motion.div
@@ -134,16 +203,19 @@ export default function BlogDetail() {
           className="mb-6 sm:mb-8"
         >
           <h1 className="font-['Public_Sans:SemiBold',sans-serif] text-3xl sm:text-4xl lg:text-[48px] lg:leading-[60px] bg-gradient-to-r from-[#101828] via-[#1e2939] to-[#101828] bg-clip-text text-transparent mb-4">
-            Why Most React Developers Fail Those Simple Interview
-            Questions Even Know the Answers
+            {blog.title}
           </h1>
           <div className="flex items-center gap-3">
             <span className="font-['Merriweather:Regular',sans-serif] text-sm text-[#4a5565]">
-              Aug 1, 2025
+              {blog.date}
             </span>
             <div className="bg-[#99a1af] rounded-full size-1" />
             <span className="font-['Merriweather:Regular',sans-serif] text-sm text-[#4a5565]">
-              7 min read
+              {blog.readTime}
+            </span>
+            <div className="bg-[#99a1af] rounded-full size-1" />
+            <span className="px-2 py-0.5 bg-[#f0f9fc] text-[#14627a] text-xs font-semibold rounded">
+              {blog.category}
             </span>
           </div>
         </motion.div>
@@ -157,9 +229,9 @@ export default function BlogDetail() {
           className="mb-10 sm:mb-12"
         >
           <img
-            src="https://www.techmagic.co/blog/content/images/2024/07/cover-React-1.png"
-            alt="Blog Hero"
-            className="w-full max-w-[880px] mx-auto rounded-xl sm:rounded-[14px] shadow-lg"
+            src={blog.image}
+            alt={blog.title}
+            className="w-full max-w-[880px] mx-auto rounded-xl sm:rounded-[14px] shadow-lg object-cover max-h-[500px]"
           />
         </motion.div>
 
@@ -172,93 +244,87 @@ export default function BlogDetail() {
           className="flex items-center gap-4 mb-10 sm:mb-12"
         >
           <div className="relative flex-shrink-0">
-            <div className="absolute bg-gradient-to-r from-[#9810fa] to-[#e60076] rounded-full size-[68px] blur-[8px] opacity-50" />
-            <img
-              src="https://images.unsplash.com/photo-1737575655055-e3967cbefd03?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBkZXZlbG9wZXIlMjBwb3J0cmFpdHxlbnwxfHx8fDE3NzE1ODE3MzF8MA&ixlib=rb-4.1.0&q=80&w=1080"
-              alt="Spongebob"
-              className="relative rounded-full size-[64px] shadow-[0px_0px_0px_4px_white,0px_10px_15px_-3px_rgba(0,0,0,0.1)] object-cover"
-            />
+            <div className="absolute bg-gradient-to-r from-[#14627a] to-[#1a9b8e] rounded-full size-[68px] blur-[8px] opacity-30" />
+            <div className="relative w-[64px] h-[64px] bg-gradient-to-br from-[#14627a] to-[#0d4d5e] rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+              {blog.author.split(' ').map(n => n[0]).join('').toUpperCase()}
+            </div>
           </div>
           <div>
             <p className="font-['Merriweather:Bold',sans-serif] text-lg text-[#101828]">
-              Spongebob
+              {blog.author}
             </p>
             <p className="font-['Roboto:Regular',sans-serif] text-sm text-[#4a5565]">
-              Technical Writer
+              {blog.isDefault ? 'EduTech Team' : 'Community Author'}
             </p>
           </div>
         </motion.div>
 
         {/* Table of Contents */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={scaleIn}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="bg-[rgba(255,255,255,0.8)] backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)] border-b-4 border-r-2 border-[rgba(0,0,0,0.2)] mb-10 sm:mb-12"
-        >
-          <h3 className="font-['Merriweather:Bold',sans-serif] text-2xl text-[#101828] mb-6">
-            In this article
-          </h3>
-          <ul className="space-y-2">
-            {[
-              { label: "1. What is React", section: "section1" },
-              { label: "2. How to learn React", section: "section2" },
-              { label: "3. Why React is easy", section: "section3" }
-            ].map((item) => (
-              <li
-                key={item.section}
-                onClick={() => {
-                  const el = document.querySelector(`[data-section="${item.section}"]`);
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }}
-                className={`group relative flex flex-col cursor-pointer rounded-lg transition-all duration-200 overflow-hidden
-                  ${activeSection === item.section ? 'bg-[#eaf4f7]' : 'hover:bg-[#f4fafc]'}`}
-              >
-                {/* Left active bar */}
-                <span
-                  className={`absolute left-0 top-0 h-full w-[4px] rounded-r-full transition-all duration-300
-                    ${activeSection === item.section
-                      ? 'bg-[#14627a] opacity-100'
-                      : 'bg-[#14627a] opacity-0 group-hover:opacity-40'}`}
-                />
-                <span
-                  className={`pl-5 pr-4 py-3 font-['Merriweather:Regular',sans-serif] text-base sm:text-lg transition-all duration-200
-                    ${activeSection === item.section
-                      ? 'text-[#14627a] font-semibold translate-x-1'
-                      : 'text-[#364153] group-hover:text-[#14627a] group-hover:translate-x-1'}`}
+        {blog.sections && blog.sections.length > 0 && (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={scaleIn}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="bg-[rgba(255,255,255,0.8)] backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)] border-b-4 border-r-2 border-[rgba(0,0,0,0.2)] mb-10 sm:mb-12"
+          >
+            <h3 className="font-['Merriweather:Bold',sans-serif] text-2xl text-[#101828] mb-6">
+              In this article
+            </h3>
+            <ul className="space-y-2">
+              {blog.sections.map((item, index) => (
+                <li
+                  key={item.id}
+                  onClick={() => {
+                    const el = document.querySelector(`[data-section="${item.id}"]`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  className={`group relative flex flex-col cursor-pointer rounded-lg transition-all duration-200 overflow-hidden
+                    ${activeSection === item.id ? 'bg-[#eaf4f7]' : 'hover:bg-[#f4fafc]'}`}
                 >
-                  {item.label}
-                </span>
-                {/* Animated underline */}
-                <span
-                  className={`block h-[2px] bg-[#14627a] rounded-full mx-5 transition-all duration-300 origin-left
-                    ${activeSection === item.section
-                      ? 'scale-x-100 opacity-100 mb-2'
-                      : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-60 mb-2'}`}
-                />
-              </li>
-            ))}
-          </ul>
-        </motion.div>
+                  <span
+                    className={`absolute left-0 top-0 h-full w-[4px] rounded-r-full transition-all duration-300
+                      ${activeSection === item.id
+                        ? 'bg-[#14627a] opacity-100'
+                        : 'bg-[#14627a] opacity-0 group-hover:opacity-40'}`}
+                  />
+                  <span
+                    className={`pl-5 pr-4 py-3 font-['Merriweather:Regular',sans-serif] text-base sm:text-lg transition-all duration-200
+                      ${activeSection === item.id
+                        ? 'text-[#14627a] font-semibold translate-x-1'
+                        : 'text-[#364153] group-hover:text-[#14627a] group-hover:translate-x-1'}`}
+                  >
+                    {index + 1}. {item.title}
+                  </span>
+                  <span
+                    className={`block h-[2px] bg-[#14627a] rounded-full mx-5 transition-all duration-300 origin-left
+                      ${activeSection === item.id
+                        ? 'scale-x-100 opacity-100 mb-2'
+                        : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-60 mb-2'}`}
+                  />
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
 
-        {/* Quote Section */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={fadeInUp}
-          transition={{ duration: 0.6 }}
-          className="bg-gradient-to-r from-[#fffbeb] to-[#fff7ed] border-l-4 border-[#ff9b00] rounded-tr-2xl rounded-br-2xl p-6 sm:p-8 shadow-[0px_10px_15px_0px_rgba(0,0,0,0.1)] mb-10 sm:mb-12"
-        >
-          <p className="font-['Roboto:Medium',sans-serif] text-lg sm:text-2xl text-[#364153] leading-relaxed">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ultrices dui diam arcu
-            pharetra at laoreet pellentesque. Imperdiet sit ut ornare nulla risus id fames
-            nascetur urna. Eros in neque tincidunt.
-          </p>
-        </motion.div>
+        {/* Excerpt/Quote Section */}
+        {blog.excerpt && (
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={fadeInUp}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-r from-[#f0f9fc] to-[#f4fafb] border-l-4 border-[#14627a] rounded-tr-2xl rounded-br-2xl p-6 sm:p-8 shadow-[0px_10px_15px_0px_rgba(0,0,0,0.1)] mb-10 sm:mb-12"
+          >
+            <p className="font-['Roboto:Medium',sans-serif] text-lg sm:text-2xl text-[#364153] leading-relaxed italic">
+              "{blog.excerpt}"
+            </p>
+          </motion.div>
+        )}
 
-        {/* Blog Content Sections */}
+        {/* Blog Content Section */}
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -266,68 +332,30 @@ export default function BlogDetail() {
           variants={staggerContainer}
           className="space-y-8 mb-16"
         >
-          <motion.p
-            variants={fadeInUp}
-            className="font-['Roboto:Regular',sans-serif] text-lg sm:text-xl text-[#364153] leading-relaxed"
-          >
-            Amet aliquet at a aliquam ac suspendisse euismod. Lectus sit in ut erat in. Et
-            nulla a magna amet, amet. Sodales malesuada laoreet bibendum neque amet turpis non.
-            Ac arcu lacus turpis elementum imperdiet. Euismod purus, libero scelerisque vitae,
-            libero fermentum urna, nunc.
-          </motion.p>
-
-          <motion.p
-            variants={fadeInUp}
-            className="font-['Roboto:Regular',sans-serif] text-lg sm:text-xl text-[#364153] leading-relaxed"
-          >
-            Vel leo proin facilisis metus sit ut cursus sagittis. Diam donec mus malesuada et ac
-            vulputate. Aenean lacinia suspendisse et mattis adipiscing id dictum commodo nunc.
-          </motion.p>
-
-          {/* Section 1 */}
           <motion.div
             variants={fadeInUp}
-            data-section="section1"
-            className="pt-8 space-y-4 sm:space-y-6 scroll-mt-24"
+            className="font-['Roboto:Regular',sans-serif] text-lg sm:text-xl text-[#364153] leading-relaxed whitespace-pre-wrap"
           >
-            <h2 className="font-['Public_Sans:SemiBold',sans-serif] text-2xl sm:text-4xl text-black">
-              1. What is React
-            </h2>
-            <p className="font-['Roboto:Regular',sans-serif] text-lg sm:text-xl text-[#364153] leading-relaxed">
-              Dignissim lacus sit congue lacus aliquam. Ut non fermentum vulputate donec enim
-              sed ornare scelerisque. Sollicitudin orci leo egestas fermentum platea a imperdiet nisl.
-            </p>
+            {blog.content}
           </motion.div>
 
-          {/* Section 2 */}
-          <motion.div
-            variants={fadeInUp}
-            data-section="section2"
-            className="pt-8 space-y-4 sm:space-y-6 scroll-mt-24"
-          >
-            <h2 className="font-['Public_Sans:SemiBold',sans-serif] text-2xl sm:text-4xl bg-gradient-to-r from-[#155dfc] to-[#0092b8] bg-clip-text text-transparent">
-              2. How to learn React
-            </h2>
-            <p className="font-['Roboto:Regular',sans-serif] text-lg sm:text-xl text-[#364153] leading-relaxed">
-              Dignissim lacus sit congue lacus aliquam. Ut non fermentum vulputate donec enim
-              sed ornare scelerisque. Sollicitudin orci leo egestas fermentum platea a imperdiet nisl.
-            </p>
-          </motion.div>
-
-          {/* Section 3 */}
-          <motion.div
-            variants={fadeInUp}
-            data-section="section3"
-            className="pt-8 space-y-4 sm:space-y-6 scroll-mt-24"
-          >
-            <h2 className="font-['Public_Sans:SemiBold',sans-serif] text-2xl sm:text-4xl bg-gradient-to-r from-[#009966] to-[#009689] bg-clip-text text-transparent">
-              3. Why React is easy
-            </h2>
-            <p className="font-['Roboto:Regular',sans-serif] text-lg sm:text-xl text-[#364153] leading-relaxed">
-              Dignissim lacus sit congue lacus aliquam. Ut non fermentum vulputate donec enim
-              sed ornare scelerisque. Sollicitudin orci leo egestas fermentum platea a imperdiet nisl.
-            </p>
-          </motion.div>
+          {/* Render Sections if available */}
+          {blog.sections && blog.sections.map((section, index) => (
+            <motion.div
+              key={section.id}
+              variants={fadeInUp}
+              data-section={section.id}
+              className="pt-8 space-y-4 sm:space-y-6 scroll-mt-24"
+            >
+              <h2 className="font-['Public_Sans:SemiBold',sans-serif] text-2xl sm:text-4xl text-black">
+                {index + 1}. {section.title}
+              </h2>
+              {/* Note: In a real app we might have content per section, but here we're using the main content */}
+              <p className="font-['Roboto:Regular',sans-serif] text-lg sm:text-xl text-[#364153] leading-relaxed">
+                Continue exploring {section.title.toLowerCase()} in depth as we dive into more details below.
+              </p>
+            </motion.div>
+          ))}
         </motion.div>
 
         {/* Suggestions Section */}
@@ -355,13 +383,12 @@ export default function BlogDetail() {
               >
                 <div className="flex items-start gap-3">
                   <div
-                    className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${
-                      suggestion.type === "article"
-                        ? "bg-blue-100 text-blue-700"
-                        : suggestion.type === "video"
+                    className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${suggestion.type === "article"
+                      ? "bg-blue-100 text-blue-700"
+                      : suggestion.type === "video"
                         ? "bg-purple-100 text-purple-700"
                         : "bg-green-100 text-green-700"
-                    }`}
+                      }`}
                   >
                     {suggestion.type.toUpperCase()}
                   </div>
@@ -535,43 +562,21 @@ export default function BlogDetail() {
           viewport={{ once: true, amount: 0.5 }}
           variants={fadeInUp}
           transition={{ duration: 0.6 }}
-          className="bg-gradient-to-r from-white to-gray-50 rounded-2xl p-6 sm:p-10 lg:p-12 shadow-lg border border-gray-100"
+          className="bg-gradient-to-r from-white to-[#f0f9fc] rounded-2xl p-6 sm:p-10 lg:p-12 shadow-lg border border-gray-100"
         >
           <div className="flex flex-col sm:flex-row items-start gap-6 sm:gap-8">
             <div className="relative flex-shrink-0">
-              <div className="absolute bg-gradient-to-r from-[#9810fa] to-[#e60076] rounded-full size-24 blur-[12px] opacity-50" />
-              <img
-                src="https://images.unsplash.com/photo-1737575655055-e3967cbefd03?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBkZXZlbG9wZXIlMjBwb3J0cmFpdHxlbnwxfHx8fDE3NzE1ODE3MzF8MA&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Spongebob"
-                className="relative rounded-full size-24 shadow-xl object-cover"
-              />
+              <div className="relative w-24 h-24 bg-gradient-to-br from-[#14627a] to-[#0d4d5e] rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-xl">
+                {blog.author.split(' ').map(n => n[0]).join('').toUpperCase()}
+              </div>
             </div>
             <div className="flex-1">
               <h3 className="font-['Merriweather:Regular',sans-serif] text-2xl sm:text-3xl text-[#101828] mb-4">
-                Written by Spongebob
+                Written by {blog.author}
               </h3>
               <p className="font-['Roboto:Regular',sans-serif] text-base sm:text-lg text-[#4a5565] leading-relaxed mb-6">
-                Volutpat cursus id id tincidunt duis id. Urna curabitur ultrices molestie
-                bibendum. Purus orci nisl, commodo ipsum, ut urna, elementum.
+                Expert contributor focusing on {blog.category} and modern engineering practices. Passionate about sharing knowledge and building scalable applications.
               </p>
-              <div className="flex gap-3">
-                {[
-                  { icon: svgPaths.p2276e2c0, color: "#1877F2" },
-                  { icon: svgPaths.p4926900, color: "#E4405F" },
-                  { icon: svgPaths.p30498500, color: "#0A66C2" }
-                ].map((social, index) => (
-                  <motion.button
-                    key={index}
-                    whileHover={{ scale: 1.2, y: -5 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="bg-gray-100 hover:bg-[#14627a] p-3 rounded-lg transition-colors group"
-                  >
-                    <svg className="w-5 h-5" viewBox="0 0 20 20" fill={social.color}>
-                      <path d={social.icon} className="group-hover:fill-white transition-colors" />
-                    </svg>
-                  </motion.button>
-                ))}
-              </div>
             </div>
           </div>
         </motion.div>
@@ -581,4 +586,4 @@ export default function BlogDetail() {
       <Footer />
     </div>
   );
-} 
+}

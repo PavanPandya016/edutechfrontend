@@ -22,6 +22,25 @@ const staggerContainer = {
   }
 };
 
+// --- Helper: Auto-classify event as 'past' or 'upcoming' based on date ---
+function classifyEvents(events) {
+  const now = new Date();
+  // Normalize today to midnight so same-day events are still "upcoming"
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  return events.map((event) => {
+    const eventDate = new Date(event.date);
+    const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+    return {
+      ...event,
+      type: eventDay < today ? 'past' : 'upcoming',
+      // Derive display month/day from the date string so there's a single source of truth
+      month: eventDate.toLocaleString('default', { month: 'short' }),
+      day: String(eventDate.getDate()),
+    };
+  });
+}
+
 // --- Components ---
 
 function ArrowRightLine() {
@@ -41,7 +60,7 @@ function ArrowRightLine() {
   );
 }
 
-function EventCard({ month, day, title, time, location, bgColor }) {
+function EventCard({ month, day, title, time, location, bgColor, type }) {
   return (
     <motion.div
       layout
@@ -50,9 +69,16 @@ function EventCard({ month, day, title, time, location, bgColor }) {
       animate="visible"
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       whileHover={{ y: -10, transition: { duration: 0.2 } }}
-      className={`${bgColor} w-full rounded-[25px] overflow-hidden shadow-lg cursor-pointer`}
+      className={`${bgColor} w-full rounded-[25px] overflow-hidden shadow-lg cursor-pointer relative`}
     >
-      <div className="p-5 sm:p-6 space-y-3 sm:space-y-4">
+      {/* Past event overlay badge */}
+      {type === 'past' && (
+        <div className="absolute top-4 right-4 bg-black/30 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+          Past
+        </div>
+      )}
+
+      <div className={`p-5 sm:p-6 space-y-3 sm:space-y-4 ${type === 'past' ? 'opacity-75' : ''}`}>
         <div className="font-['Public_Sans:Bold',sans-serif] font-bold text-[36px] sm:text-[44px] md:text-[48px] text-white tracking-[0.36px]">
           <p className="leading-[1]">{month}</p>
         </div>
@@ -83,16 +109,23 @@ function EventCard({ month, day, title, time, location, bgColor }) {
 export default function Workshop() {
   const [filter, setFilter] = useState('all');
 
-  const events = [
-    { id: 1, month: 'Feb', day: '4', title: 'Artificial Intelligence', time: '15:00 - 17:00', location: 'Gujarat university', bgColor: 'bg-[#14627a]', type: 'upcoming' },
-    { id: 2, month: 'Feb', day: '4', title: 'Artificial Intelligence', time: '15:00 - 17:00', location: 'Gujarat university', bgColor: 'bg-[#6fa7b8]', type: 'upcoming' },
-    { id: 3, month: 'Feb', day: '4', title: 'Artificial Intelligence', time: '15:00 - 17:00', location: 'Gujarat university', bgColor: 'bg-[#14627a]', type: 'upcoming' },
-    { id: 4, month: 'Jan', day: '12', title: 'Robotics Workshop', time: '10:00 - 12:00', location: 'Ahmedabad IT Park', bgColor: 'bg-[#6fa7b8]', type: 'past' },
-    { id: 5, month: 'Jan', day: '15', title: 'Cloud Computing', time: '14:00 - 16:00', location: 'Tejeel HQ', bgColor: 'bg-[#14627a]', type: 'past' },
-    { id: 6, month: 'Dec', day: '28', title: 'Cyber Security', time: '11:00 - 13:00', location: 'Online Webinar', bgColor: 'bg-[#6fa7b8]', type: 'past' },
+  // ── Event list: only 'date' (YYYY-MM-DD), 'type' is auto-derived ──
+  const rawEvents = [
+    { id: 1, date: '2026-04-10', title: 'Artificial Intelligence',  time: '15:00 - 17:00', location: 'Gujarat University',   bgColor: 'bg-[#14627a]' },
+    { id: 2, date: '2026-03-20', title: 'Web Development Bootcamp', time: '10:00 - 13:00', location: 'Tejeel HQ',            bgColor: 'bg-[#6fa7b8]' },
+    { id: 3, date: '2026-05-05', title: 'Data Science Summit',      time: '09:00 - 18:00', location: 'Ahmedabad IT Park',    bgColor: 'bg-[#14627a]' },
+    { id: 4, date: '2026-01-12', title: 'Robotics Workshop',        time: '10:00 - 12:00', location: 'Ahmedabad IT Park',    bgColor: 'bg-[#6fa7b8]' },
+    { id: 5, date: '2026-02-15', title: 'Cloud Computing',          time: '14:00 - 16:00', location: 'Tejeel HQ',            bgColor: 'bg-[#14627a]' },
+    { id: 6, date: '2025-12-28', title: 'Cyber Security',           time: '11:00 - 13:00', location: 'Online Webinar',       bgColor: 'bg-[#6fa7b8]' },
   ];
 
+  // Auto-classify each event based on today's date
+  const events = classifyEvents(rawEvents);
+
   const displayed = filter === 'all' ? events : events.filter(e => e.type === filter);
+
+  const upcomingCount = events.filter(e => e.type === 'upcoming').length;
+  const pastCount     = events.filter(e => e.type === 'past').length;
 
   return (
     <div className="bg-white flex flex-col min-h-screen overflow-x-hidden">
@@ -130,12 +163,16 @@ export default function Workshop() {
       <div className="py-8 sm:py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex justify-center">
           <div className="inline-flex p-1.5 bg-gray-100 rounded-[20px] border border-gray-200">
-            {['all', 'upcoming', 'past'].map((opt) => {
-              const isActive = filter === opt;
+            {[
+              { key: 'all',      label: 'All Events' },
+              { key: 'upcoming', label: `Upcoming (${upcomingCount})` },
+              { key: 'past',     label: `Past (${pastCount})` },
+            ].map(({ key, label }) => {
+              const isActive = filter === key;
               return (
                 <button
-                  key={opt}
-                  onClick={() => setFilter(opt)}
+                  key={key}
+                  onClick={() => setFilter(key)}
                   className={`relative px-6 sm:px-8 py-2.5 rounded-[15px] text-sm md:text-base font-semibold transition-colors duration-300 focus:outline-none ${
                     isActive ? 'text-white' : 'text-[#6d737a] hover:text-[#14627a]'
                   }`}
@@ -147,9 +184,7 @@ export default function Workshop() {
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
-                  <span className="relative z-10 capitalize">
-                    {opt === 'all' ? 'All Events' : opt}
-                  </span>
+                  <span className="relative z-10">{label}</span>
                 </button>
               );
             })}
@@ -170,6 +205,16 @@ export default function Workshop() {
               ))}
             </AnimatePresence>
           </motion.div>
+
+          {displayed.length === 0 && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center text-[#6d737a] text-lg mt-20"
+            >
+              No events found.
+            </motion.p>
+          )}
         </div>
       </div>
 

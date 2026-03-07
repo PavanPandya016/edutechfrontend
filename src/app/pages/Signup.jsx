@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -9,10 +8,13 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
+    mobileNumber: '',
     password: '',
-    confirmPassword: '',
-    agreeToTerms: false
+    confirmPassword: ''
   });
+  const [focusedField, setFocusedField] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -20,155 +22,285 @@ export default function Signup() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const newErrors = {};
+
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    }
+    if (!formData.mobileNumber.trim()) {
+      newErrors.mobileNumber = 'Mobile number is required';
+    } else if (!/^[0-9]{10}$/.test(formData.mobileNumber.replace(/[\D]/g, ''))) {
+      newErrors.mobileNumber = 'Please enter a valid 10-digit mobile number';
+    }
+    if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
-    if (!formData.agreeToTerms) {
-      alert('Please agree to the terms and conditions');
-      return;
-    }
+
     // Store signup data
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('userName', formData.fullName);
     localStorage.setItem('userEmail', formData.email);
-    localStorage.setItem('userRole', 'student'); // New users are students by default
-    // Navigate to dashboard
-    navigate('/dashboard');
+    localStorage.setItem('userMobile', formData.mobileNumber);
+    localStorage.setItem('userRole', 'student');
+    
+    setSubmitSuccess(true);
+    setTimeout(() => navigate('/'), 1500);
   };
 
+  const styles = `
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .animate-slide-in-up {
+      animation: slideInUp 0.6s ease-out forwards;
+    }
+
+    .animate-slide-in-left {
+      animation: slideInLeft 0.6s ease-out forwards;
+    }
+
+    .form-field {
+      animation: slideInUp 0.6s ease-out forwards;
+    }
+
+    .form-field:nth-child(1) { animation-delay: 0.1s; opacity: 0; }
+    .form-field:nth-child(2) { animation-delay: 0.2s; opacity: 0; }
+    .form-field:nth-child(3) { animation-delay: 0.3s; opacity: 0; }
+    .form-field:nth-child(4) { animation-delay: 0.4s; opacity: 0; }
+    .form-field:nth-child(5) { animation-delay: 0.5s; opacity: 0; }
+    .form-submit { animation: slideInUp 0.6s ease-out forwards; animation-delay: 0.6s; opacity: 0; }
+
+    .success-check {
+      animation: scaleIn 0.5s ease-out;
+    }
+  `;
+
   return (
-    <div className="bg-white flex flex-col min-h-screen">
+    <div className="bg-gradient-to-b from-[#f0f7fa] to-white flex flex-col min-h-screen">
+      <style>{styles}</style>
       <Header />
       
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          {/* Left side - Signup Form */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 order-2 lg:order-1">
-            <div className="mb-8">
-              <h1 className="font-['Public_Sans:SemiBold',sans-serif] font-semibold text-[32px] md:text-[40px] text-[#14627a] leading-tight mb-4">
-                Join eduTech
-              </h1>
-              <p className="font-['Public_Sans:Regular',sans-serif] font-normal text-[16px] md:text-[18px] text-[#6d737a] leading-relaxed">
-                Start your learning journey today with 5000+ courses
-              </p>
-            </div>
+        <div className="w-full max-w-2xl">
+          <div className="relative">
+            {/* Animated background gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#14627a]/5 to-[#1a9b8e]/5 rounded-3xl blur-xl opacity-60"></div>
+            
+            {/* Main Form Card */}
+            <div className="relative bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-[#e0f2f7] overflow-hidden">
+              {/* Decorative top border accent */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#14627a] via-[#1a9b8e] to-[#14627a]"></div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="fullName" className="block font-['Public_Sans:Medium',sans-serif] font-medium text-[14px] md:text-[16px] text-[#1b1d1f] mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  id="fullName"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-[#e7e9eb] rounded-lg font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] focus:outline-none focus:ring-2 focus:ring-[#14627a] focus:border-transparent transition-all"
-                  placeholder="Enter your full name"
-                />
+              {/* Header Section */}
+              <div className="mb-10 animate-slide-in-left">
+                <h1 className="font-['Public_Sans:SemiBold',sans-serif] font-semibold text-[32px] md:text-[44px] text-[#14627a] leading-tight mb-4">
+                  Join eduTech
+                </h1>
+                <div className="w-12 h-1 bg-gradient-to-r from-[#14627a] to-[#1a9b8e] rounded-full mb-4"></div>
+                <p className="font-['Public_Sans:Regular',sans-serif] font-normal text-[16px] md:text-[18px] text-[#6d737a] leading-relaxed">
+                  Start your learning journey today. Sign up and get access to 5000+ courses
+                </p>
               </div>
 
-              <div>
-                <label htmlFor="email" className="block font-['Public_Sans:Medium',sans-serif] font-medium text-[14px] md:text-[16px] text-[#1b1d1f] mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-[#e7e9eb] rounded-lg font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] focus:outline-none focus:ring-2 focus:ring-[#14627a] focus:border-transparent transition-all"
-                  placeholder="Enter your email"
-                />
+              {/* Success Message */}
+              {submitSuccess && (
+                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl animate-scale-in">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white font-bold success-check">
+                      ✓
+                    </div>
+                    <p className="font-['Public_Sans:Medium',sans-serif] text-green-700">
+                      Account created successfully! Redirecting...
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Full Name */}
+                <div className="form-field">
+                  <label htmlFor="fullName" className="block font-['Public_Sans:SemiBold',sans-serif] font-semibold text-[14px] md:text-[16px] text-[#1b1d1f] mb-3">
+                    <span className="text-[#d91e63]">*</span> Full Name
+                  </label>
+                  <input
+                    type="text"
+                    id="fullName"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    onFocus={() => setFocusedField('fullName')}
+                    onBlur={() => setFocusedField(null)}
+                    className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
+                      focusedField === 'fullName' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
+                    } focus:outline-none`}
+                    placeholder="Enter your full name"
+                  />
+                  {errors.fullName && <p className="text-red-500 text-sm mt-2">{errors.fullName}</p>}
+                </div>
+
+                {/* Email */}
+                <div className="form-field">
+                  <label htmlFor="email" className="block font-['Public_Sans:SemiBold',sans-serif] font-semibold text-[14px] md:text-[16px] text-[#1b1d1f] mb-3">
+                    <span className="text-[#d91e63]">*</span> Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    onFocus={() => setFocusedField('email')}
+                    onBlur={() => setFocusedField(null)}
+                    className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
+                      focusedField === 'email' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
+                    } focus:outline-none`}
+                    placeholder="Enter your email"
+                  />
+                  {errors.email && <p className="text-red-500 text-sm mt-2">{errors.email}</p>}
+                </div>
+
+                {/* Mobile Number */}
+                <div className="form-field">
+                  <label htmlFor="mobileNumber" className="block font-['Public_Sans:SemiBold',sans-serif] font-semibold text-[14px] md:text-[16px] text-[#1b1d1f] mb-3">
+                    <span className="text-[#d91e63]">*</span> Mobile Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="mobileNumber"
+                    name="mobileNumber"
+                    value={formData.mobileNumber}
+                    onChange={handleChange}
+                    onFocus={() => setFocusedField('mobileNumber')}
+                    onBlur={() => setFocusedField(null)}
+                    className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
+                      focusedField === 'mobileNumber' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
+                    } focus:outline-none`}
+                    placeholder="Enter your 10-digit mobile number"
+                  />
+                  {errors.mobileNumber && <p className="text-red-500 text-sm mt-2">{errors.mobileNumber}</p>}
+                </div>
+
+                {/* Password */}
+                <div className="form-field">
+                  <label htmlFor="password" className="block font-['Public_Sans:SemiBold',sans-serif] font-semibold text-[14px] md:text-[16px] text-[#1b1d1f] mb-3">
+                    <span className="text-[#d91e63]">*</span> Password
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    onFocus={() => setFocusedField('password')}
+                    onBlur={() => setFocusedField(null)}
+                    className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
+                      focusedField === 'password' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
+                    } focus:outline-none`}
+                    placeholder="Create a strong password (min. 6 characters)"
+                  />
+                  {errors.password && <p className="text-red-500 text-sm mt-2">{errors.password}</p>}
+                </div>
+
+                {/* Confirm Password */}
+                <div className="form-field">
+                  <label htmlFor="confirmPassword" className="block font-['Public_Sans:SemiBold',sans-serif] font-semibold text-[14px] md:text-[16px] text-[#1b1d1f] mb-3">
+                    <span className="text-[#d91e63]">*</span> Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    onFocus={() => setFocusedField('confirmPassword')}
+                    onBlur={() => setFocusedField(null)}
+                    className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
+                      focusedField === 'confirmPassword' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
+                    } focus:outline-none`}
+                    placeholder="Confirm your password"
+                  />
+                  {errors.confirmPassword && <p className="text-red-500 text-sm mt-2">{errors.confirmPassword}</p>}
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={submitSuccess}
+                  className="form-submit w-full bg-gradient-to-r from-[#14627a] to-[#0f4a5b] text-white px-6 py-4 rounded-xl font-['Public_Sans:SemiBold',sans-serif] text-[16px] hover:from-[#0f4a5b] hover:to-[#083a47] transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl shadow-lg mt-8 disabled:opacity-75 cursor-pointer"
+                >
+                  {submitSuccess ? 'Account Created!' : 'Create Account'}
+                </button>
+              </form>
+
+              {/* Divider */}
+              <div className="my-8 flex items-center gap-4">
+                <div className="flex-1 h-px bg-gray-200"></div>
+                <span className="text-[#6d737a] text-sm">Already have an account?</span>
+                <div className="flex-1 h-px bg-gray-200"></div>
               </div>
 
-              <div>
-                <label htmlFor="password" className="block font-['Public_Sans:Medium',sans-serif] font-medium text-[14px] md:text-[16px] text-[#1b1d1f] mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-[#e7e9eb] rounded-lg font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] focus:outline-none focus:ring-2 focus:ring-[#14627a] focus:border-transparent transition-all"
-                  placeholder="Create a password"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="confirmPassword" className="block font-['Public_Sans:Medium',sans-serif] font-medium text-[14px] md:text-[16px] text-[#1b1d1f] mb-2">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-[#e7e9eb] rounded-lg font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] focus:outline-none focus:ring-2 focus:ring-[#14627a] focus:border-transparent transition-all"
-                  placeholder="Confirm your password"
-                />
-              </div>
-
-              <div className="flex items-start">
-                <input
-                  type="checkbox"
-                  id="agreeToTerms"
-                  name="agreeToTerms"
-                  checked={formData.agreeToTerms}
-                  onChange={handleChange}
-                  className="w-4 h-4 mt-1 text-[#14627a] border-[#e7e9eb] rounded focus:ring-[#14627a]"
-                />
-                <label htmlFor="agreeToTerms" className="ml-2 font-['Public_Sans:Regular',sans-serif] text-[14px] text-[#6d737a]">
-                  I agree to the{' '}
-                  <Link to="/terms" className="text-[#14627a] hover:underline">
-                    Terms and Conditions
+              {/* Login Link */}
+              <div className="text-center">
+                <p className="font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#6d737a]">
+                  <Link to="/login" className="font-['Public_Sans:SemiBold',sans-serif] text-[#14627a] hover:text-[#0f4a5b] transition-colors hover:underline">
+                    Login to your account
                   </Link>
-                  {' '}and{' '}
-                  <Link to="/privacy" className="text-[#14627a] hover:underline">
-                    Privacy Policy
-                  </Link>
-                </label>
+                </p>
               </div>
-
-              <button
-                type="submit"
-                className="w-full bg-[#14627a] text-white px-6 py-4 rounded-lg font-['Public_Sans:SemiBold',sans-serif] text-[16px] hover:bg-[#0f4a5b] transition-all transform hover:scale-[1.02] shadow-lg"
-              >
-                Create Account
-              </button>
-            </form>
-
-            <div className="mt-8 text-center">
-              <p className="font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#6d737a]">
-                Already have an account?{' '}
-                <Link to="/login" className="font-['Public_Sans:SemiBold',sans-serif] text-[#14627a] hover:underline">
-                  Login here
-                </Link>
-              </p>
             </div>
-          </div>
-
-          {/* Right side - Image */}
-          <div className="hidden lg:block order-1 lg:order-2">
-            <ImageWithFallback
-              src="https://images.unsplash.com/photo-1688413709025-5f085266935a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHRlY2glMjBwYXR0ZXJufGVufDF8fHx8MTc3MTI4NjU3N3ww&ixlib=rb-4.1.0&q=80&w=1080"
-              alt="Technology"
-              className="w-full h-auto rounded-2xl shadow-2xl"
-            />
           </div>
         </div>
       </div>

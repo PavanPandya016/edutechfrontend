@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -10,6 +9,9 @@ export default function Login() {
     email: '',
     password: ''
   });
+  const [focusedField, setFocusedField] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,95 +35,207 @@ export default function Login() {
       localStorage.setItem('userRole', 'student');
       localStorage.setItem('userName', formData.email.split('@')[0]);
     }
+
+    if (rememberMe) {
+      localStorage.setItem('rememberMe', 'true');
+    }
     
-    // Navigate to dashboard
-    navigate('/dashboard');
+    setSubmitSuccess(true);
+    setTimeout(() => navigate('/'), 1500);
   };
 
+  const styles = `
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .animate-slide-in-up {
+      animation: slideInUp 0.6s ease-out forwards;
+    }
+
+    .animate-slide-in-left {
+      animation: slideInLeft 0.6s ease-out forwards;
+    }
+
+    .form-field {
+      animation: slideInUp 0.6s ease-out forwards;
+    }
+
+    .form-field:nth-child(1) { animation-delay: 0.1s; opacity: 0; }
+    .form-field:nth-child(2) { animation-delay: 0.2s; opacity: 0; }
+    .form-field:nth-child(3) { animation-delay: 0.3s; opacity: 0; }
+    .form-submit { animation: slideInUp 0.6s ease-out forwards; animation-delay: 0.4s; opacity: 0; }
+
+    .success-check {
+      animation: scaleIn 0.5s ease-out;
+    }
+  `;
+
   return (
-    <div className="bg-white flex flex-col min-h-screen">
+    <div className="bg-gradient-to-b from-[#f0f7fa] to-white flex flex-col min-h-screen">
+      <style>{styles}</style>
       <Header />
       
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          {/* Left side - Image */}
-          <div className="hidden lg:block">
-            <ImageWithFallback
-              src="https://images.unsplash.com/photo-1721468184185-214871ec4411?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlZHVjYXRpb24lMjBzdHVkZW50JTIwbGVhcm5pbmd8ZW58MXx8fHwxNzcxMjk2NzE0fDA&ixlib=rb-4.1.0&q=80&w=1080"
-              alt="Education"
-              className="w-full h-auto rounded-2xl shadow-2xl"
-            />
-          </div>
+        <div className="w-full max-w-2xl">
+          <div className="relative">
+            {/* Animated background gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#14627a]/5 to-[#1a9b8e]/5 rounded-3xl blur-xl opacity-60"></div>
+            
+            {/* Main Form Card */}
+            <div className="relative bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-[#e0f2f7] overflow-hidden">
+              {/* Decorative top border accent */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#14627a] via-[#1a9b8e] to-[#14627a]"></div>
 
-          {/* Right side - Login Form */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
-            <div className="mb-8">
-              <h1 className="font-['Public_Sans:SemiBold',sans-serif] font-semibold text-[32px] md:text-[40px] text-[#14627a] leading-tight mb-4">
-                Welcome Back
-              </h1>
-              <p className="font-['Public_Sans:Regular',sans-serif] font-normal text-[16px] md:text-[18px] text-[#6d737a] leading-relaxed">
-                Login to access your courses and continue learning
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="email" className="block font-['Public_Sans:Medium',sans-serif] font-medium text-[14px] md:text-[16px] text-[#1b1d1f] mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-[#e7e9eb] rounded-lg font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] focus:outline-none focus:ring-2 focus:ring-[#14627a] focus:border-transparent transition-all"
-                  placeholder="Enter your email"
-                />
+              {/* Header Section */}
+              <div className="mb-10 animate-slide-in-left">
+                <h1 className="font-['Public_Sans:SemiBold',sans-serif] font-semibold text-[32px] md:text-[44px] text-[#14627a] leading-tight mb-4">
+                  Welcome Back
+                </h1>
+                <div className="w-12 h-1 bg-gradient-to-r from-[#14627a] to-[#1a9b8e] rounded-full mb-4"></div>
+                <p className="font-['Public_Sans:Regular',sans-serif] font-normal text-[16px] md:text-[18px] text-[#6d737a] leading-relaxed">
+                  Login to access your courses and continue learning with eduTech
+                </p>
               </div>
 
-              <div>
-                <label htmlFor="password" className="block font-['Public_Sans:Medium',sans-serif] font-medium text-[14px] md:text-[16px] text-[#1b1d1f] mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-[#e7e9eb] rounded-lg font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] focus:outline-none focus:ring-2 focus:ring-[#14627a] focus:border-transparent transition-all"
-                  placeholder="Enter your password"
-                />
+              {/* Success Message */}
+              {submitSuccess && (
+                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl animate-scale-in">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white font-bold success-check">
+                      ✓
+                    </div>
+                    <p className="font-['Public_Sans:Medium',sans-serif] text-green-700">
+                      Login successful! Redirecting...
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Email */}
+                <div className="form-field">
+                  <label htmlFor="email" className="block font-['Public_Sans:SemiBold',sans-serif] font-semibold text-[14px] md:text-[16px] text-[#1b1d1f] mb-3">
+                    <span className="text-[#d91e63]">*</span> Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    onFocus={() => setFocusedField('email')}
+                    onBlur={() => setFocusedField(null)}
+                    required
+                    className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
+                      focusedField === 'email' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
+                    } focus:outline-none`}
+                    placeholder="Enter your email"
+                  />
+                </div>
+
+                {/* Password */}
+                <div className="form-field">
+                  <label htmlFor="password" className="block font-['Public_Sans:SemiBold',sans-serif] font-semibold text-[14px] md:text-[16px] text-[#1b1d1f] mb-3">
+                    <span className="text-[#d91e63]">*</span> Password
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    onFocus={() => setFocusedField('password')}
+                    onBlur={() => setFocusedField(null)}
+                    required
+                    className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
+                      focusedField === 'password' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
+                    } focus:outline-none`}
+                    placeholder="Enter your password"
+                  />
+                </div>
+
+                {/* Remember Me & Forgot Password */}
+                <div className="form-field flex items-center justify-between">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-5 h-5 text-[#14627a] border-2 border-[#e7e9eb] rounded-md focus:ring-[#14627a] cursor-pointer" 
+                    />
+                    <span className="font-['Public_Sans:Regular',sans-serif] text-[14px] text-[#6d737a]">Remember me</span>
+                  </label>
+                  <Link to="/forgot-password" className="font-['Public_Sans:Medium',sans-serif] text-[14px] text-[#14627a] hover:text-[#0f4a5b] transition-colors">
+                    Forgot Password?
+                  </Link>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={submitSuccess}
+                  className="form-submit w-full bg-gradient-to-r from-[#14627a] to-[#0f4a5b] text-white px-6 py-4 rounded-xl font-['Public_Sans:SemiBold',sans-serif] text-[16px] hover:from-[#0f4a5b] hover:to-[#083a47] transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl shadow-lg mt-8 disabled:opacity-75 cursor-pointer"
+                >
+                  {submitSuccess ? 'Login Successful!' : 'Login'}
+                </button>
+              </form>
+
+              {/* Divider */}
+              <div className="my-8 flex items-center gap-4">
+                <div className="flex-1 h-px bg-gray-200"></div>
+                <span className="text-[#6d737a] text-sm">Or</span>
+                <div className="flex-1 h-px bg-gray-200"></div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <label className="flex items-center">
-                  <input type="checkbox" className="w-4 h-4 text-[#14627a] border-[#e7e9eb] rounded focus:ring-[#14627a]" />
-                  <span className="ml-2 font-['Public_Sans:Regular',sans-serif] text-[14px] text-[#6d737a]">Remember me</span>
-                </label>
-                <Link to="/forgot-password" className="font-['Public_Sans:Medium',sans-serif] text-[14px] text-[#14627a] hover:underline">
-                  Forgot Password?
-                </Link>
+              {/* Signup Link */}
+              <div className="text-center">
+                <p className="font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#6d737a]">
+                  Don't have an account?{' '}
+                  <Link to="/signup" className="font-['Public_Sans:SemiBold',sans-serif] text-[#14627a] hover:text-[#0f4a5b] transition-colors hover:underline">
+                    Create one now
+                  </Link>
+                </p>
               </div>
 
-              <button
-                type="submit"
-                className="w-full bg-[#14627a] text-white px-6 py-4 rounded-lg font-['Public_Sans:SemiBold',sans-serif] text-[16px] hover:bg-[#0f4a5b] transition-all transform hover:scale-[1.02] shadow-lg"
-              >
-                Login
-              </button>
-            </form>
-
-            <div className="mt-8 text-center">
-              <p className="font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#6d737a]">
-                Don't have an account?{' '}
-                <Link to="/signup" className="font-['Public_Sans:SemiBold',sans-serif] text-[#14627a] hover:underline">
-                  Sign up for free
-                </Link>
-              </p>
+              {/* Demo Credentials */}
+              <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <p className="font-['Public_Sans:SemiBold',sans-serif] text-[13px] text-blue-900 mb-2">Demo Credentials:</p>
+                <p className="font-['Public_Sans:Regular',sans-serif] text-[12px] text-blue-800">
+                  <strong>Student:</strong> any-email@example.com<br/>
+                  <strong>Admin:</strong> admin@edutech.com
+                </p>
+              </div>
             </div>
           </div>
         </div>

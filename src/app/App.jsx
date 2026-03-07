@@ -9,7 +9,7 @@ import Blog from './pages/Blog';
 import Workshop from './pages/Workshop';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import Dashboard from './pages/Dashboard';
+import Apply from './pages/Apply';
 
 export default function App() {
   return (
@@ -22,8 +22,9 @@ export default function App() {
         <Route path="/workshop" element={<Workshop />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/apply" element={<Apply />} />
         <Route path="*" element={<Home />} />
+        
       </Routes>
     </BrowserRouter>
   );

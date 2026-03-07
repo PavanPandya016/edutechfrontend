@@ -1,112 +1,10 @@
-import { useState } from 'react';
-import { motion } from 'motion/react'; 
+import { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { Search, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-
-const blogPosts = [
-  {
-    id: 1,
-    title: "Why Most React Developers Fail Those Simple Interview Questions Even Know the Answers",
-    image: "https://images.unsplash.com/photo-1675495277087-10598bf7bcd1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9ncmFtbWluZyUyMGxhcHRvcCUyMGNvZGV8ZW58MXx8fHwxNzcxNTk2ODg1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-    category: "Development",
-    date: "Feb 15, 2026",
-    readTime: "8 min read",
-    excerpt: "Dive deep into the common pitfalls that trip up even experienced React developers during technical interviews and learn how to avoid them.",
-    author: "Sarah Johnson"
-  },
-  {
-    id: 2,
-    title: "Building Scalable Applications with Modern DevOps Practices",
-    image: "https://images.unsplash.com/photo-1759884248009-92c5e957708e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0ZWNobm9sb2d5JTIwd29ya3NwYWNlJTIwZGV2ZWxvcGVyfGVufDF8fHx8MTc3MTU5Njg4NXww&ixlib=rb-4.1.0&q=80&w=1080",
-    category: "DevOps",
-    date: "Feb 14, 2026",
-    readTime: "12 min read",
-    excerpt: "Explore the latest DevOps methodologies and tools that are transforming how teams build, deploy, and maintain modern applications.",
-    author: "Michael Chen"
-  },
-  {
-    id: 3,
-    title: "The Complete Guide to Web Performance Optimization",
-    image: "https://images.unsplash.com/photo-1637937459053-c788742455be?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWIlMjBkZXZlbG9wbWVudCUyMHNjcmVlbnxlbnwxfHx8fDE3NzE1MDQxMjh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    category: "Performance",
-    date: "Feb 13, 2026",
-    readTime: "10 min read",
-    excerpt: "Learn proven techniques to make your web applications lightning fast, from lazy loading to image optimization and beyond.",
-    author: "Emily Rodriguez"
-  },
-  {
-    id: 4,
-    title: "Mastering Software Architecture in Distributed Systems",
-    image: "https://images.unsplash.com/photo-1580894894513-541e068a3e2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzb2Z0d2FyZSUyMGVuZ2luZWVyaW5nJTIwb2ZmaWNlfGVufDF8fHx8MTc3MTU5Njg4Nnww&ixlib=rb-4.1.0&q=80&w=1080",
-    category: "Architecture",
-    date: "Feb 12, 2026",
-    readTime: "15 min read",
-    excerpt: "Understanding the principles and patterns that make distributed systems resilient, scalable, and maintainable in production.",
-    author: "David Kim"
-  },
-  {
-    id: 5,
-    title: "Cloud Computing Trends Shaping the Future of Tech",
-    image: "https://images.unsplash.com/photo-1744868562210-fffb7fa882d9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjbG91ZCUyMGNvbXB1dGluZyUyMHNlcnZlcnxlbnwxfHx8fDE3NzE1MDYxNjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    category: "Cloud",
-    date: "Feb 11, 2026",
-    readTime: "9 min read",
-    excerpt: "Discover how serverless, edge computing, and multi-cloud strategies are revolutionizing infrastructure and application deployment.",
-    author: "Alex Thompson"
-  },
-  {
-    id: 6,
-    title: "Data Science Techniques for Real-World Business Problems",
-    image: "https://images.unsplash.com/photo-1666875753105-c63a6f3bdc86?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYXRhJTIwc2NpZW5jZSUyMGFuYWx5dGljc3xlbnwxfHx8fDE3NzE1NTg2NzF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    category: "Data Science",
-    date: "Feb 10, 2026",
-    readTime: "11 min read",
-    excerpt: "Apply machine learning and statistical analysis to solve complex business challenges and drive data-driven decision making.",
-    author: "Jessica Park"
-  },
-  {
-    id: 7,
-    title: "AI and Machine Learning: Beyond the Hype",
-    image: "https://images.unsplash.com/photo-1625314887424-9f190599bd56?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcnRpZmljaWFsJTIwaW50ZWxsaWdlbmNlJTIwcm9ib3R8ZW58MXx8fHwxNzcxNDk2OTkyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-    category: "AI/ML",
-    date: "Feb 9, 2026",
-    readTime: "13 min read",
-    excerpt: "A practical look at implementing AI solutions in production, including ethical considerations and real-world use cases.",
-    author: "Robert Martinez"
-  },
-  {
-    id: 8,
-    title: "Cybersecurity Best Practices for Modern Applications",
-    image: "https://images.unsplash.com/photo-1768224656445-33d078c250b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjeWJlcnNlY3VyaXR5JTIwbmV0d29yayUyMGRpZ2l0YWx8ZW58MXx8fHwxNzcxNTgxMDIwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-    category: "Security",
-    date: "Feb 8, 2026",
-    readTime: "10 min read",
-    excerpt: "Essential security practices every developer should implement to protect applications from common vulnerabilities and threats.",
-    author: "Lisa Anderson"
-  },
-  {
-    id: 9,
-    title: "Mobile-First Design: Creating Exceptional User Experiences",
-    image: "https://images.unsplash.com/photo-1609921212029-bb5a28e60960?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2JpbGUlMjBhcHAlMjBkZXNpZ258ZW58MXx8fHwxNzcxNTQ5ODc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-    category: "Design",
-    date: "Feb 7, 2026",
-    readTime: "7 min read",
-    excerpt: "Design principles and techniques for creating engaging mobile experiences that users love and come back to regularly.",
-    author: "Tom Wilson"
-  },
-  {
-    id: 10,
-    title: "Startup Innovation: Lessons from Silicon Valley",
-    image: "https://images.unsplash.com/photo-1733925457822-64c3e048fa1b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0ZWNoJTIwc3RhcnR1cCUyMGlubm92YXRpb258ZW58MXx8fHwxNzcxNTk2ODg4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-    category: "Business",
-    date: "Feb 6, 2026",
-    readTime: "14 min read",
-    excerpt: "Insights from successful tech entrepreneurs on building products, scaling teams, and navigating the startup ecosystem.",
-    author: "Kevin Brown"
-  }
-];
+import blogService from '../services/blogService';
 
 const categoryColors = {
   Development: 'bg-[#14627a]',
@@ -122,19 +20,35 @@ const categoryColors = {
 };
 
 export default function Blog() {
+  const [blogPosts, setBlogPosts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [userRole, setUserRole] = useState(null);
+  const [hasPermission, setHasPermission] = useState(false);
+  const [categories, setCategories] = useState(['All']);
 
-  const categories = ['All', ...Object.keys(categoryColors)];
+  useEffect(() => {
+    // Load all blogs from service
+    const allBlogs = blogService.getAllBlogs();
+    setBlogPosts(allBlogs);
 
-  const filteredPosts = blogPosts.filter((post) => {
-    const matchesSearch =
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      selectedCategory === 'All' || post.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+    // Load categories from service
+    const blogCategories = blogService.getCategories();
+    setCategories(['All', ...blogCategories]);
+  }, []);
+
+  useEffect(() => {
+    const role = localStorage.getItem('userRole');
+    setUserRole(role);
+    if (role === 'admin' || role === 'editor') {
+      setHasPermission(true);
+    }
+  }, []);
+
+  const filteredPosts = blogService.searchBlogs(
+    searchQuery,
+    selectedCategory === 'All' ? null : selectedCategory
+  );
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -187,6 +101,57 @@ export default function Blog() {
             A blog about tech, real‑world tasks, and the latest news.
           </motion.p>
 
+          {/* Create Blog & Export Button for Authorized Users */}
+          {hasPermission && (
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.35, duration: 0.6 }}
+              className="mb-8 flex flex-wrap justify-center gap-4"
+            >
+              <Link
+                to="/blog/editor"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#14627a] to-[#0f4a5b] text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all"
+              >
+                <span>✏️</span> Create New Blog
+              </Link>
+
+              {userRole === 'admin' && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => blogService.exportBlogs()}
+                    className="inline-flex items-center gap-2 bg-white border-2 border-[#14627a] text-[#14627a] px-6 py-3 rounded-lg font-semibold hover:bg-slate-50 transition-all shadow-sm"
+                  >
+                    <span>📥</span> Export
+                  </button>
+                  <label className="inline-flex items-center gap-2 bg-white border-2 border-slate-300 text-slate-600 px-6 py-3 rounded-lg font-semibold hover:bg-slate-50 transition-all shadow-sm cursor-pointer">
+                    <span>📤</span> Import
+                    <input
+                      type="file"
+                      accept=".json"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            const success = blogService.importBlogs(event.target.result);
+                            if (success) {
+                              window.location.reload();
+                            } else {
+                              alert("Failed to import data. Please check the file format.");
+                            }
+                          };
+                          reader.readAsText(file);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              )}
+            </motion.div>
+          )}
+
           {/* search */}
           <motion.div
             className="max-w-3xl mx-auto mb-6 sm:mb-8"
@@ -218,11 +183,10 @@ export default function Blog() {
               <motion.button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all ${
-                  selectedCategory === category
-                    ? 'bg-[#14627a] text-white shadow-lg'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all ${selectedCategory === category
+                  ? 'bg-[#14627a] text-white shadow-lg'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                  }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >

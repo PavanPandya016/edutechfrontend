@@ -22,6 +22,8 @@ const POPULAR_COURSES = [
   { id: 3, title: "Digital Marketing Pro", category: "Marketing", price: 500, rating: 4, reviews: 102, image: picsum("course3", 400, 250) },
   { id: 4, title: "Data Science Essentials", category: "Data Science", price: 500, rating: 5, reviews: 89, image: picsum("course4", 400, 250) },
 ];
+// TODO: Replace POPULAR_COURSES with API call
+// const POPULAR_COURSES = await fetch('/api/courses/popular').then(r => r.json());
 
 const CATEGORIES = [
   { name: "Design", icon: "bi-palette" },
@@ -33,6 +35,8 @@ const CATEGORIES = [
   { name: "Music", icon: "bi-music-note" },
   { name: "Data Science", icon: "bi-bar-chart" },
 ];
+// TODO: Replace CATEGORIES with API call
+// const CATEGORIES = await fetch('/api/categories').then(r => r.json());
 
 const INSTRUCTORS = [
   { id: 1, name: "Sarah Jones", specialty: "UI/UX Design", image: picsum("instructor1", 200, 200) },
@@ -41,6 +45,8 @@ const INSTRUCTORS = [
   { id: 4, name: "David Wilson", specialty: "Photography", image: picsum("instructor4", 200, 200) },
   { id: 5, name: "Jessica Brown", specialty: "Music Production", image: picsum("instructor5", 200, 200) },
 ];
+// TODO: Replace INSTRUCTORS with API call
+// const INSTRUCTORS = await fetch('/api/instructors').then(r => r.json());
 
 // ─── Reusable UI ──────────────────────────────────────────────────────────────
 
@@ -412,45 +418,49 @@ function CategoriesSection() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {CATEGORIES.map((category, index) => (
-            <motion.button
+            <Link 
               key={category.name}
+              to={`/courses?category=${encodeURIComponent(category.name)}`}
               aria-label={`Browse ${category.name} courses`}
-              className="group w-full bg-white rounded-lg p-6 flex items-center justify-between cursor-pointer border border-transparent"
-              initial={{
-                y: 0,
-                boxShadow: "0px 3px 12px 0px rgba(75,75,75,0.08)",
-                borderColor: "transparent"
-              }}
-              whileHover={{
-                y: -5,
-                boxShadow: "0px 10px 30px 0px rgba(75,75,75,0.15)",
-                borderColor: "#14627a"            // border turns teal
-              }}
-              transition={{ type: "spring", stiffness: 400, damping: 30 }}
             >
-              <div className="flex items-center gap-4">
-                <i
-                  className={`${category.icon} text-2xl text-[#6d737a]
-                     transition-colors duration-100 group-hover:text-[#14627a]`}
-                  aria-hidden="true"
-                />
-                <span
-                  className="text-[20px] font-medium text-[#1b1d1f]
-                     transition-colors duration-100 group-hover:text-[#14627a]"
-                >
-                  {category.name}
-                </span>
-              </div>
-              <div
-                className="flex items-center justify-center w-11 h-11 rounded-lg p-2.5
-                   bg-white text-[#6d737a] shadow-[0px_3px_12px_0px_rgba(75,75,75,0.08)]
-                   transition-colors duration-100 group-hover:bg-[#14627a]
-                   group-hover:text-white"
-                aria-hidden="true"
+              <motion.button
+                className="group w-full bg-white rounded-lg p-6 flex items-center justify-between cursor-pointer border border-transparent text-left"
+                initial={{
+                  y: 0,
+                  boxShadow: "0px 3px 12px 0px rgba(75,75,75,0.08)",
+                  borderColor: "transparent"
+                }}
+                whileHover={{
+                  y: -5,
+                  boxShadow: "0px 10px 30px 0px rgba(75,75,75,0.15)",
+                  borderColor: "#14627a"            // border turns teal
+                }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
               >
-                <ArrowUpRightIcon color="currentColor" />
-              </div>
-            </motion.button>
+                <div className="flex items-center gap-4">
+                  <i
+                    className={`${category.icon} text-2xl text-[#6d737a]
+                       transition-colors duration-100 group-hover:text-[#14627a]`}
+                    aria-hidden="true"
+                  />
+                  <span
+                    className="text-[20px] font-medium text-[#1b1d1f]
+                       transition-colors duration-100 group-hover:text-[#14627a]"
+                  >
+                    {category.name}
+                  </span>
+                </div>
+                <div
+                  className="flex items-center justify-center w-11 h-11 rounded-lg p-2.5
+                     bg-white text-[#6d737a] shadow-[0px_3px_12px_0px_rgba(75,75,75,0.08)]
+                     transition-colors duration-100 group-hover:bg-[#14627a]
+                     group-hover:text-white"
+                  aria-hidden="true"
+                >
+                  <ArrowUpRightIcon color="currentColor" />
+                </div>
+              </motion.button>
+            </Link>
           ))}
         </div>
       </div>
