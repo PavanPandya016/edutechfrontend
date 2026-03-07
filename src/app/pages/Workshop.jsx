@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import Header from '../components/ui/Header';
+import Footer from '../components/ui/Footer';
 import svgPaths from '../../imports/svg-go1x4xx39u';
 
 // --- Animation Variants ---

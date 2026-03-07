@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import Header from '../components/ui/Header';
+import Footer from '../components/ui/Footer';
 
 export default function Apply() {
   const navigate = useNavigate();

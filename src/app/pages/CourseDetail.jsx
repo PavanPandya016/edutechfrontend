@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import svgPaths from "../../imports/svg-78otquld5h";
 
 import { imgStarColor } from "../../imports/svg-nvm9s";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import Header from "../components/ui/Header";
+import Footer from "../components/ui/Footer";
 
 // extracted styles object moved to separate file for readability
 import styles from './CourseDetail.styles';

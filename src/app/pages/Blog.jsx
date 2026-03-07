@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { Search, User } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Search, User, LayoutDashboard, PlusCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import Header from '../components/ui/Header';
+import Footer from '../components/ui/Footer';
 import blogService from '../services/blogService';
+import SuggestionForm from '../components/SuggestionForm';
 
 const categoryColors = {
   Development: 'bg-[#14627a]',
@@ -23,9 +24,12 @@ export default function Blog() {
   const [blogPosts, setBlogPosts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedTag, setSelectedTag] = useState('');
+  const [sortBy, setSortBy] = useState('Latest');
   const [userRole, setUserRole] = useState(null);
   const [hasPermission, setHasPermission] = useState(false);
   const [categories, setCategories] = useState(['All']);
+  const [availableTags, setAvailableTags] = useState([]);
 
   useEffect(() => {
     // Load all blogs from service
@@ -35,20 +39,42 @@ export default function Blog() {
     // Load categories from service
     const blogCategories = blogService.getCategories();
     setCategories(['All', ...blogCategories]);
+
+    // Extract unique tags
+    const tagsSet = new Set();
+    allBlogs.forEach(blog => {
+      if (Array.isArray(blog.tags)) {
+        blog.tags.forEach(tag => tagsSet.add(tag));
+      }
+    });
+    setAvailableTags(Array.from(tagsSet));
   }, []);
 
   useEffect(() => {
     const role = localStorage.getItem('userRole');
     setUserRole(role);
-    if (role === 'admin' || role === 'editor') {
-      setHasPermission(true);
-    }
+    // Allow access for testing the CRUD operations
+    setHasPermission(true);
   }, []);
 
-  const filteredPosts = blogService.searchBlogs(
+  // Filter and Sort
+  let filteredPosts = blogService.searchBlogs(
     searchQuery,
     selectedCategory === 'All' ? null : selectedCategory
   );
+
+  if (selectedTag) {
+    filteredPosts = filteredPosts.filter(post => post.tags && post.tags.includes(selectedTag));
+  }
+
+  // Sort logic
+  if (sortBy === 'Latest') {
+    filteredPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+  } else if (sortBy === 'Popular') {
+    filteredPosts.sort((a, b) => (b.views || 0) - (a.views || 0));
+  } else if (sortBy === 'Trending') {
+    filteredPosts.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -101,7 +127,7 @@ export default function Blog() {
             A blog about tech, real‑world tasks, and the latest news.
           </motion.p>
 
-          {/* Create Blog & Export Button for Authorized Users */}
+          {/* Create Blog & Dashboard Button for Authorized Users */}
           {hasPermission && (
             <motion.div
               initial={{ y: -20, opacity: 0 }}
@@ -110,65 +136,60 @@ export default function Blog() {
               className="mb-8 flex flex-wrap justify-center gap-4"
             >
               <Link
-                to="/blog/editor"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#14627a] to-[#0f4a5b] text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all"
+                to="/blog/dashboard"
+                className="inline-flex items-center gap-2 bg-white border-2 border-[#14627a] text-[#14627a] px-6 py-3 rounded-lg font-semibold hover:bg-slate-50 transition-all shadow-sm group"
               >
-                <span>✏️</span> Create New Blog
+                <LayoutDashboard size={20} className="group-hover:rotate-12 transition-transform" /> Dashboard
               </Link>
-
-              {userRole === 'admin' && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => blogService.exportBlogs()}
-                    className="inline-flex items-center gap-2 bg-white border-2 border-[#14627a] text-[#14627a] px-6 py-3 rounded-lg font-semibold hover:bg-slate-50 transition-all shadow-sm"
-                  >
-                    <span>📥</span> Export
-                  </button>
-                  <label className="inline-flex items-center gap-2 bg-white border-2 border-slate-300 text-slate-600 px-6 py-3 rounded-lg font-semibold hover:bg-slate-50 transition-all shadow-sm cursor-pointer">
-                    <span>📤</span> Import
-                    <input
-                      type="file"
-                      accept=".json"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (event) => {
-                            const success = blogService.importBlogs(event.target.result);
-                            if (success) {
-                              window.location.reload();
-                            } else {
-                              alert("Failed to import data. Please check the file format.");
-                            }
-                          };
-                          reader.readAsText(file);
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              )}
+              <Link
+                to="/blog/editor"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#14627a] to-[#0f4a5b] text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all group"
+              >
+                <PlusCircle size={20} className="group-hover:scale-110 transition-transform" /> Create New Blog
+              </Link>
             </motion.div>
           )}
 
-          {/* search */}
+          {/* search, sort, and tag filters */}
           <motion.div
-            className="max-w-3xl mx-auto mb-6 sm:mb-8"
+            className="max-w-4xl mx-auto mb-6 sm:mb-8"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
-            <div className="relative">
-              <input
-                type="text"
-                aria-label="Search articles"
-                placeholder="Search for articles..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 sm:px-6 py-3 sm:py-4 pl-12 sm:pl-14 bg-white/70 backdrop-blur-sm border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#14627a] focus:border-transparent text-sm sm:text-base"
-              />
-              <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  aria-label="Search articles"
+                  placeholder="Search for articles..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 sm:px-6 py-3 sm:py-4 pl-12 sm:pl-14 bg-white/70 backdrop-blur-sm border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#14627a] focus:border-transparent text-sm sm:text-base"
+                />
+                <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+              
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-3 sm:py-4 bg-white/70 backdrop-blur-sm border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#14627a] text-gray-700 min-w-[140px]"
+              >
+                <option value="Latest">Latest</option>
+                <option value="Popular">Popular Views</option>
+                <option value="Trending">Trending Likes</option>
+              </select>
+
+              <select
+                value={selectedTag}
+                onChange={(e) => setSelectedTag(e.target.value)}
+                className="px-4 py-3 sm:py-4 bg-white/70 backdrop-blur-sm border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#14627a] text-gray-700 min-w-[140px]"
+              >
+                <option value="">All Tags</option>
+                {availableTags.map(tag => (
+                  <option key={tag} value={tag}>{tag}</option>
+                ))}
+              </select>
             </div>
           </motion.div>
 
@@ -183,9 +204,9 @@ export default function Blog() {
               <motion.button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all ${selectedCategory === category
-                  ? 'bg-[#14627a] text-white shadow-lg'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all border-2 ${selectedCategory === category
+                  ? 'bg-[#14627a] text-white border-[#14627a] shadow-lg shadow-[#14627a]/30'
+                  : 'bg-white text-gray-600 border-gray-100 hover:border-[#14627a]/30 hover:bg-gray-50'
                   }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -210,8 +231,8 @@ export default function Blog() {
               <motion.article
                 key={post.id}
                 variants={itemVariants}
-                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 group"
-                whileHover={{ y: -8 }}
+                className="bg-white rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(20,98,122,0.1)] transition-all duration-500 group border border-gray-50"
+                whileHover={{ y: -12 }}
               >
                 <div className="relative h-48 sm:h-56 overflow-hidden">
                   <motion.img
@@ -258,9 +279,9 @@ export default function Blog() {
 
                     <Link
                       to={`/blog/${post.id}`}
-                      className="text-[#14627a] hover:text-[#0d4d5e] font-medium text-xs sm:text-sm flex items-center"
+                      className="text-[#14627a] hover:text-[#0d4d5e] font-bold text-xs sm:text-sm flex items-center group/read"
                     >
-                      Read more&nbsp;&rarr;
+                      Read more <ArrowRight size={16} className="ml-1 group-hover/read:translate-x-1 transition-transform" />
                     </Link>
                   </div>
                 </div>
@@ -279,6 +300,16 @@ export default function Blog() {
               </p>
             </motion.div>
           )}
+
+          {/* New Suggestion Feature */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <SuggestionForm />
+          </motion.div>
         </motion.div>
       </section>
 

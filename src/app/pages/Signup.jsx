@@ -1,73 +1,29 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import { useForm } from 'react-hook-form';
+import Header from '../components/ui/Header';
+import Footer from '../components/ui/Footer';
+import storageService from '../services/storageService';
 
 export default function Signup() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    mobileNumber: '',
-    password: '',
-    confirmPassword: ''
-  });
+  const { register, handleSubmit, watch, formState: { errors } } = useForm();
   const [focusedField, setFocusedField] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [errors, setErrors] = useState({});
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const newErrors = {};
-
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    }
-    if (!formData.mobileNumber.trim()) {
-      newErrors.mobileNumber = 'Mobile number is required';
-    } else if (!/^[0-9]{10}$/.test(formData.mobileNumber.replace(/[\D]/g, ''))) {
-      newErrors.mobileNumber = 'Please enter a valid 10-digit mobile number';
-    }
-    if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    // Store signup data
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userName', formData.fullName);
-    localStorage.setItem('userEmail', formData.email);
-    localStorage.setItem('userMobile', formData.mobileNumber);
-    localStorage.setItem('userRole', 'student');
+  const onSubmit = (data) => {
+    // Store signup data in storageService
+    storageService.set('isLoggedIn', 'true');
+    storageService.set('userName', data.fullName);
+    storageService.set('userEmail', data.email);
+    storageService.set('userMobile', data.mobileNumber);
+    storageService.set('userRole', 'student');
     
     setSubmitSuccess(true);
     setTimeout(() => navigate('/'), 1500);
   };
+
+  const password = watch('password');
 
   const styles = `
     @keyframes slideInUp {
@@ -169,7 +125,7 @@ export default function Signup() {
               )}
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Full Name */}
                 <div className="form-field">
                   <label htmlFor="fullName" className="block font-['Public_Sans:SemiBold',sans-serif] font-semibold text-[14px] md:text-[16px] text-[#1b1d1f] mb-3">
@@ -178,17 +134,15 @@ export default function Signup() {
                   <input
                     type="text"
                     id="fullName"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
+                    {...register('fullName', { required: 'Full name is required' })}
                     onFocus={() => setFocusedField('fullName')}
                     onBlur={() => setFocusedField(null)}
                     className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
                       focusedField === 'fullName' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
-                    } focus:outline-none`}
+                    } ${errors.fullName ? 'border-red-500' : ''} focus:outline-none`}
                     placeholder="Enter your full name"
                   />
-                  {errors.fullName && <p className="text-red-500 text-sm mt-2">{errors.fullName}</p>}
+                  {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName.message}</p>}
                 </div>
 
                 {/* Email */}
@@ -199,17 +153,21 @@ export default function Signup() {
                   <input
                     type="email"
                     id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
+                    {...register('email', { 
+                      required: 'Email is required',
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: 'Invalid email address'
+                      }
+                    })}
                     onFocus={() => setFocusedField('email')}
                     onBlur={() => setFocusedField(null)}
                     className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
                       focusedField === 'email' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
-                    } focus:outline-none`}
+                    } ${errors.email ? 'border-red-500' : ''} focus:outline-none`}
                     placeholder="Enter your email"
                   />
-                  {errors.email && <p className="text-red-500 text-sm mt-2">{errors.email}</p>}
+                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
                 </div>
 
                 {/* Mobile Number */}
@@ -220,17 +178,21 @@ export default function Signup() {
                   <input
                     type="tel"
                     id="mobileNumber"
-                    name="mobileNumber"
-                    value={formData.mobileNumber}
-                    onChange={handleChange}
+                    {...register('mobileNumber', { 
+                      required: 'Mobile number is required',
+                      pattern: {
+                        value: /^[0-9]{10}$/,
+                        message: 'Please enter a valid 10-digit mobile number'
+                      }
+                    })}
                     onFocus={() => setFocusedField('mobileNumber')}
                     onBlur={() => setFocusedField(null)}
                     className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
                       focusedField === 'mobileNumber' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
-                    } focus:outline-none`}
+                    } ${errors.mobileNumber ? 'border-red-500' : ''} focus:outline-none`}
                     placeholder="Enter your 10-digit mobile number"
                   />
-                  {errors.mobileNumber && <p className="text-red-500 text-sm mt-2">{errors.mobileNumber}</p>}
+                  {errors.mobileNumber && <p className="text-red-500 text-xs mt-1">{errors.mobileNumber.message}</p>}
                 </div>
 
                 {/* Password */}
@@ -241,17 +203,21 @@ export default function Signup() {
                   <input
                     type="password"
                     id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
+                    {...register('password', { 
+                      required: 'Password is required',
+                      minLength: {
+                        value: 6,
+                        message: 'Password must be at least 6 characters'
+                      }
+                    })}
                     onFocus={() => setFocusedField('password')}
                     onBlur={() => setFocusedField(null)}
                     className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
                       focusedField === 'password' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
-                    } focus:outline-none`}
+                    } ${errors.password ? 'border-red-500' : ''} focus:outline-none`}
                     placeholder="Create a strong password (min. 6 characters)"
                   />
-                  {errors.password && <p className="text-red-500 text-sm mt-2">{errors.password}</p>}
+                  {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
                 </div>
 
                 {/* Confirm Password */}
@@ -262,17 +228,22 @@ export default function Signup() {
                   <input
                     type="password"
                     id="confirmPassword"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
+                    {...register('confirmPassword', { 
+                      required: 'Confirm password is required',
+                      validate: (val) => {
+                        if (watch('password') !== val) {
+                          return "Passwords do not match";
+                        }
+                      }
+                    })}
                     onFocus={() => setFocusedField('confirmPassword')}
                     onBlur={() => setFocusedField(null)}
                     className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
                       focusedField === 'confirmPassword' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
-                    } focus:outline-none`}
+                    } ${errors.confirmPassword ? 'border-red-500' : ''} focus:outline-none`}
                     placeholder="Confirm your password"
                   />
-                  {errors.confirmPassword && <p className="text-red-500 text-sm mt-2">{errors.confirmPassword}</p>}
+                  {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>}
                 </div>
 
                 {/* Submit Button */}

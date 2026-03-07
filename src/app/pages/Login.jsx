@@ -1,47 +1,48 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import { useForm } from 'react-hook-form';
+import Header from '../components/ui/Header';
+import Footer from '../components/ui/Footer';
+import storageService from '../services/storageService';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: {
+      email: '',
+      password: ''
+    }
   });
+  
   const [focusedField, setFocusedField] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  const onSubmit = (data) => {
+    try {
+      // Store login state in storageService
+      storageService.set('isLoggedIn', 'true');
+      storageService.set('userEmail', data.email);
+      
+      // Determine role based on email (logic kept as requested)
+      if (data.email === 'admin@edutech.com') {
+        storageService.set('userRole', 'admin');
+        storageService.set('userName', 'Admin');
+      } else {
+        storageService.set('userRole', 'student');
+        storageService.set('userName', data.email.split('@')[0]);
+      }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Store login state in localStorage
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userEmail', formData.email);
-    
-    // Determine role based on email
-    if (formData.email === 'admin@edutech.com') {
-      localStorage.setItem('userRole', 'admin');
-      localStorage.setItem('userName', 'Admin');
-    } else {
-      localStorage.setItem('userRole', 'student');
-      localStorage.setItem('userName', formData.email.split('@')[0]);
+      if (rememberMe) {
+        storageService.set('rememberMe', 'true');
+      }
+      
+      setSubmitSuccess(true);
+      setTimeout(() => navigate('/'), 1500);
+    } catch (error) {
+      setLoginError('An unexpected error occurred. Please try again.');
     }
-
-    if (rememberMe) {
-      localStorage.setItem('rememberMe', 'true');
-    }
-    
-    setSubmitSuccess(true);
-    setTimeout(() => navigate('/'), 1500);
   };
 
   const styles = `
@@ -142,7 +143,7 @@ export default function Login() {
               )}
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Email */}
                 <div className="form-field">
                   <label htmlFor="email" className="block font-['Public_Sans:SemiBold',sans-serif] font-semibold text-[14px] md:text-[16px] text-[#1b1d1f] mb-3">
@@ -151,17 +152,21 @@ export default function Login() {
                   <input
                     type="email"
                     id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
+                    {...register('email', { 
+                      required: 'Email is required',
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: 'Invalid email address'
+                      }
+                    })}
                     onFocus={() => setFocusedField('email')}
                     onBlur={() => setFocusedField(null)}
-                    required
                     className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
                       focusedField === 'email' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
-                    } focus:outline-none`}
+                    } ${errors.email ? 'border-red-500' : ''} focus:outline-none`}
                     placeholder="Enter your email"
                   />
+                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
                 </div>
 
                 {/* Password */}
@@ -172,17 +177,21 @@ export default function Login() {
                   <input
                     type="password"
                     id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
+                    {...register('password', { 
+                      required: 'Password is required',
+                      minLength: {
+                        value: 6,
+                        message: 'Password must be at least 6 characters'
+                      }
+                    })}
                     onFocus={() => setFocusedField('password')}
                     onBlur={() => setFocusedField(null)}
-                    required
                     className={`w-full px-5 py-4 border-2 rounded-xl font-['Public_Sans:Regular',sans-serif] text-[14px] md:text-[16px] text-[#363a3d] transition-all duration-300 ${
                       focusedField === 'password' ? 'border-[#14627a] bg-[#f0f9fc]' : 'border-[#e7e9eb] bg-white hover:border-[#14627a]/50'
-                    } focus:outline-none`}
+                    } ${errors.password ? 'border-red-500' : ''} focus:outline-none`}
                     placeholder="Enter your password"
                   />
+                  {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
                 </div>
 
                 {/* Remember Me & Forgot Password */}
