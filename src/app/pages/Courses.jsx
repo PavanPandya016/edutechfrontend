@@ -4,38 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// API Service Layer (remains unchanged)
-// ─────────────────────────────────────────────────────────────────────────────
-const apiService = {
-  fetchCourses: async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(coursesData), 500);
-    });
-  },
-  fetchCoursesByCategory: async (category) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const filtered = coursesData.filter(
-          (course) => course.category.toLowerCase() === category.toLowerCase()
-        );
-        resolve(filtered);
-      }, 500);
-    });
-  },
-};
-
-const coursesData = [
-  { id: 1, title: 'Complete Web Development Bootcamp', description: 'Master HTML, CSS, JavaScript, React, Node.js and become a full-stack developer.', image: 'https://images.unsplash.com/photo-1557324232-b8917d3c3dcb?w=600', price: 89.99, category: 'Web Development', level: 'Beginner', rating: 4.8, students: 12543, duration: '40 hours', isPaid: true },
-  { id: 2, title: 'Data Science & Machine Learning A-Z', description: 'Learn Python, statistics, data visualization, and build real-world ML models.', image: 'https://images.unsplash.com/photo-1666875753105-c63a6f3bdc86?w=600', price: 0, category: 'Data Science', level: 'Intermediate', rating: 4.9, students: 8932, duration: '35 hours', isPaid: false },
-  { id: 3, title: 'Graphic Design Masterclass', description: 'Learn Photoshop, Illustrator, and Figma. Create stunning designs from scratch.', image: 'https://images.unsplash.com/photo-1622784043149-82f7c74f8678?w=600', price: 69.99, category: 'Design', level: 'Beginner', rating: 4.7, students: 5621, duration: '25 hours', isPaid: true },
-  { id: 4, title: 'Digital Marketing Pro Certificate', description: 'SEO, social media, content marketing, and analytics to grow your business online.', image: 'https://images.unsplash.com/photo-1562577308-9e66f0c65ce5?w=600', price: 0, category: 'Marketing', level: 'Beginner', rating: 4.6, students: 10234, duration: '20 hours', isPaid: false },
-  { id: 5, title: 'Mobile App Development with React Native', description: 'Build iOS and Android apps with React Native and deploy to app stores.', image: 'https://images.unsplash.com/photo-1633250391894-397930e3f5f2?w=600', price: 94.99, category: 'Mobile Development', level: 'Advanced', rating: 4.9, students: 7845, duration: '45 hours', isPaid: true },
-  { id: 6, title: 'AI & Deep Learning Specialization', description: 'Neural networks, computer vision, NLP with TensorFlow and PyTorch.', image: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600', price: 129.99, category: 'Data Science', level: 'Advanced', rating: 4.8, students: 6234, duration: '60 hours', isPaid: true },
-  { id: 7, title: 'Professional Photography Course', description: 'Master camera settings, composition, lighting, and photo editing techniques.', image: 'https://images.unsplash.com/photo-1622319977720-9949ac28adc4?w=600', price: 0, category: 'Photography', level: 'Beginner', rating: 4.7, students: 9456, duration: '18 hours', isPaid: false },
-  { id: 8, title: 'Business Management & Strategy', description: 'Learn leadership, project management, finance, and strategic planning.', image: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=600', price: 79.99, category: 'Business', level: 'Intermediate', rating: 4.5, students: 11234, duration: '30 hours', isPaid: true },
-  { id: 9, title: 'Cybersecurity & Ethical Hacking', description: 'Network security, penetration testing, and protecting systems from threats.', image: 'https://images.unsplash.com/photo-1666615435088-4865bf5ed3fd?w=600', price: 99.99, category: 'IT & Security', level: 'Advanced', rating: 4.9, students: 5678, duration: '50 hours', isPaid: true },
-];
+import courseService from '../services/courseService';
 
 // ---------- Improved Presentational Helpers ----------
 function CourseCard({ course }) {
@@ -304,19 +273,20 @@ export default function Courses() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchCoursesData = async () => {
       try {
         setLoading(true);
-        const data = await apiService.fetchCourses();
+        const data = await courseService.getCourses();
         setCourses(data);
         setError(null);
       } catch (err) {
-        setError('Failed to load courses');
+        console.error('Error fetching courses:', err);
+        setError('Failed to load courses. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
-    fetchCourses();
+    fetchCoursesData();
   }, []);
 
   useEffect(() => {

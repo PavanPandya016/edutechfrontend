@@ -18,14 +18,20 @@ const handleResponse = async (response) => {
   return response.json();
 };
 
+const getHeaders = (headers = {}) => {
+  const token = localStorage.getItem('edutech_token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...headers,
+  };
+};
+
 export const api = {
   get: async (endpoint, options = {}) => {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers: getHeaders(options.headers),
       ...options,
     });
     return handleResponse(response);
@@ -34,10 +40,7 @@ export const api = {
   post: async (endpoint, data, options = {}) => {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers: getHeaders(options.headers),
       body: JSON.stringify(data),
       ...options,
     });
@@ -47,10 +50,7 @@ export const api = {
   put: async (endpoint, data, options = {}) => {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers: getHeaders(options.headers),
       body: JSON.stringify(data),
       ...options,
     });
@@ -60,10 +60,7 @@ export const api = {
   delete: async (endpoint, options = {}) => {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers: getHeaders(options.headers),
       ...options,
     });
     return handleResponse(response);

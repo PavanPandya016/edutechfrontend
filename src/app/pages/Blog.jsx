@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import blogService from '../services/blogService';
-import SuggestionForm from '../components/SuggestionForm';
 
 const categoryColors = {
   Development: 'bg-[#14627a]',
@@ -30,38 +29,62 @@ export default function Blog() {
   const [hasPermission, setHasPermission] = useState(false);
   const [categories, setCategories] = useState(['All']);
   const [availableTags, setAvailableTags] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Load all blogs from service
-    const allBlogs = blogService.getAllBlogs();
-    setBlogPosts(allBlogs);
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Load all blogs from service
+        const allBlogs = await blogService.getAllBlogs();
+        setBlogPosts(allBlogs);
 
-    // Load categories from service
-    const blogCategories = blogService.getCategories();
-    setCategories(['All', ...blogCategories]);
+        // Load categories from service
+        const blogCategories = await blogService.getCategories();
+        setCategories(['All', ...blogCategories]);
 
-    // Extract unique tags
-    const tagsSet = new Set();
-    allBlogs.forEach(blog => {
-      if (Array.isArray(blog.tags)) {
-        blog.tags.forEach(tag => tagsSet.add(tag));
+        // Extract unique tags
+        const tagsSet = new Set();
+        allBlogs.forEach(blog => {
+          if (Array.isArray(blog.tags)) {
+            blog.tags.forEach(tag => tagsSet.add(tag));
+          }
+        });
+        setAvailableTags(Array.from(tagsSet));
+      } catch (err) {
+        console.error('Error fetching blog data:', err);
+        setError('Failed to load blog posts. Please try again later.');
+      } finally {
+        setIsLoading(false);
       }
-    });
-    setAvailableTags(Array.from(tagsSet));
+    };
+
+    fetchData();
   }, []);
 
   useEffect(() => {
-    const role = localStorage.getItem('userRole');
-    setUserRole(role);
-    // Allow access for testing the CRUD operations
-    setHasPermission(true);
+    const userStr = localStorage.getItem('edutech_user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      setUserRole(user.role);
+      setHasPermission(user.role === 'admin' || user.role === 'instructor');
+    }
   }, []);
 
-  // Filter and Sort
-  let filteredPosts = blogService.searchBlogs(
-    searchQuery,
-    selectedCategory === 'All' ? null : selectedCategory
-  );
+  // Filter logic handled in-memory for responsiveness
+  let filteredPosts = blogPosts.filter(blog => {
+    const matchesSearch =
+      searchQuery === '' ||
+      blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      blog.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesCategory =
+      selectedCategory === 'All' || blog.category === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
 
   if (selectedTag) {
     filteredPosts = filteredPosts.filter(post => post.tags && post.tags.includes(selectedTag));
@@ -169,7 +192,7 @@ export default function Blog() {
                 />
                 <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              
+
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -226,79 +249,97 @@ export default function Blog() {
           initial="hidden"
           animate="visible"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {filteredPosts.map((post) => (
-              <motion.article
-                key={post.id}
-                variants={itemVariants}
-                className="bg-white rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(20,98,122,0.1)] transition-all duration-500 group border border-gray-50"
-                whileHover={{ y: -12 }}
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#14627a]"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-20">
+              <p className="text-red-500 text-lg">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-6 py-2 bg-[#14627a] text-white rounded-lg"
               >
-                <div className="relative h-48 sm:h-56 overflow-hidden">
-                  <motion.img
-                    src={post.image}
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <motion.div
-                    className={`absolute top-4 left-4 rounded-full px-3 py-1 text-xs font-medium text-white shadow-lg ${categoryColors[post.category]}`}
-                    whileHover={{ scale: 1.1 }}
+                Retry
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                {filteredPosts.map((post) => (
+                  <motion.article
+                    key={post.id}
+                    variants={itemVariants}
+                    className="bg-white rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(20,98,122,0.1)] transition-all duration-500 group border border-gray-50"
+                    whileHover={{ y: -12 }}
                   >
-                    {post.category}
-                  </motion.div>
-                </div>
-
-                <div className="p-4 sm:p-6">
-                  <h2 className="text-lg sm:text-xl font-bold text-[#06213d] mb-2 sm:mb-3 line-clamp-2 group-hover:text-[#14627a] transition-colors">
-                    {post.title}
-                  </h2>
-
-                  <p className="text-xs sm:text-sm text-[#6d737a] mb-2 sm:mb-3">
-                    {post.date} • {post.readTime}
-                  </p>
-
-                  <p className="text-sm sm:text-base text-[#6d737a] mb-3 sm:mb-4 line-clamp-3">
-                    {post.excerpt}
-                  </p>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#14627a] to-[#0d4d5e] rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold">
-                        {post.author
-                          .split(' ')
-                          .map((n) => n[0])
-                          .join('')}
-                      </div>
-                      <span className="text-xs sm:text-sm font-medium text-[#06213d]">
-                        {post.author}
-                      </span>
+                    <div className="relative h-48 sm:h-56 overflow-hidden">
+                      <motion.img
+                        src={post.image}
+                        alt={post.title}
+                        className="w-full h-full object-cover"
+                        whileHover={{ scale: 1.1 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <motion.div
+                        className={`absolute top-4 left-4 rounded-full px-3 py-1 text-xs font-medium text-white shadow-lg ${categoryColors[post.category]}`}
+                        whileHover={{ scale: 1.1 }}
+                      >
+                        {post.category}
+                      </motion.div>
                     </div>
 
-                    <Link
-                      to={`/blog/${post.id}`}
-                      className="text-[#14627a] hover:text-[#0d4d5e] font-bold text-xs sm:text-sm flex items-center group/read"
-                    >
-                      Read more <ArrowRight size={16} className="ml-1 group-hover/read:translate-x-1 transition-transform" />
-                    </Link>
-                  </div>
-                </div>
-              </motion.article>
-            ))}
-          </div>
+                    <div className="p-4 sm:p-6">
+                      <h2 className="text-lg sm:text-xl font-bold text-[#06213d] mb-2 sm:mb-3 line-clamp-2 group-hover:text-[#14627a] transition-colors">
+                        {post.title}
+                      </h2>
 
-          {filteredPosts.length === 0 && (
-            <motion.div
-              className="text-center py-12 sm:py-16"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <p className="text-lg sm:text-xl text-[#6d737a]">
-                No blog posts found matching your criteria.
-              </p>
-            </motion.div>
+                      <p className="text-xs sm:text-sm text-[#6d737a] mb-2 sm:mb-3">
+                        {post.date} • {post.readTime}
+                      </p>
+
+                      <p className="text-sm sm:text-base text-[#6d737a] mb-3 sm:mb-4 line-clamp-3">
+                        {post.excerpt}
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#14627a] to-[#0d4d5e] rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold">
+                            {post.author
+                              .split(' ')
+                              .map((n) => n[0])
+                              .join('')}
+                          </div>
+                          <span className="text-xs sm:text-sm font-medium text-[#06213d]">
+                            {post.author}
+                          </span>
+                        </div>
+
+                        <Link
+                          to={`/blog/${post.slug || post.id}`}
+                          className="text-[#14627a] hover:text-[#0d4d5e] font-bold text-xs sm:text-sm flex items-center group/read"
+                        >
+                          Read more <ArrowRight size={16} className="ml-1 group-hover/read:translate-x-1 transition-transform" />
+                        </Link>
+                      </div>
+                    </div>
+                  </motion.article>
+                ))}
+              </div>
+
+              {filteredPosts.length === 0 && (
+                <motion.div
+                  className="text-center py-12 sm:py-16"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <p className="text-lg sm:text-xl text-[#6d737a]">
+                    No blog posts found matching your criteria.
+                  </p>
+                </motion.div>
+              )}
+            </>
           )}
 
           {/* New Suggestion Feature */}
@@ -308,7 +349,6 @@ export default function Blog() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <SuggestionForm />
           </motion.div>
         </motion.div>
       </section>

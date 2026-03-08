@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import storageService from '../services/storageService';
+import authService from '../services/authService';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -19,29 +20,23 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState('');
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
+    setLoginError('');
     try {
-      // Store login state in storageService
-      storageService.set('isLoggedIn', 'true');
-      storageService.set('userEmail', data.email);
-      
-      // Determine role based on email (logic kept as requested)
-      if (data.email === 'admin@edutech.com') {
-        storageService.set('userRole', 'admin');
-        storageService.set('userName', 'Admin');
-      } else {
-        storageService.set('userRole', 'student');
-        storageService.set('userName', data.email.split('@')[0]);
-      }
+      const response = await authService.login({
+        email: data.email,
+        password: data.password
+      });
 
       if (rememberMe) {
-        storageService.set('rememberMe', 'true');
+        localStorage.setItem('rememberMe', 'true');
       }
       
       setSubmitSuccess(true);
       setTimeout(() => navigate('/'), 1500);
     } catch (error) {
-      setLoginError('An unexpected error occurred. Please try again.');
+      console.error('Login error:', error);
+      setLoginError(error.message || 'Invalid email or password. Please try again.');
     }
   };
 
@@ -127,6 +122,14 @@ export default function Login() {
                   Login to access your courses and continue learning with eduTech
                 </p>
               </div>
+
+              {loginError && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="font-['Public_Sans:Medium',sans-serif] text-red-700">
+                    {loginError}
+                  </p>
+                </div>
+              )}
 
               {/* Success Message */}
               {submitSuccess && (

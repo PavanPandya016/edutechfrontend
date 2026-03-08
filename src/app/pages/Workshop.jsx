@@ -3,6 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import svgPaths from '../../imports/svg-go1x4xx39u';
+import eventService from '../services/eventService';
+import authService from '../services/authService';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // --- Animation Variants ---
 const fadeInUp = {
@@ -23,23 +27,55 @@ const staggerContainer = {
 };
 
 // --- Helper: Auto-classify event as 'past' or 'upcoming' based on date ---
+// Vibrant palette for event cards (cycles through)
+const EVENT_COLORS = [
+  'bg-[#14627a]',
+  'bg-[#0183AB]',
+  'bg-[#2e7e96]',
+  'bg-[#1a5276]',
+  'bg-[#117a65]',
+  'bg-[#6c3483]',
+  'bg-[#922b21]',
+  'bg-[#7d6608]',
+];
+
 function classifyEvents(events) {
   const now = new Date();
   // Normalize today to midnight so same-day events are still "upcoming"
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  return events.map((event) => {
-    const eventDate = new Date(event.date);
+  return events.map((event, index) => {
+    // Use startDateTime (the field the backend/model actually returns)
+    const eventDate = new Date(event.startDateTime);
     const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+
+    // Format a human-readable time string, e.g. "10:00 AM"
+    const timeStr = eventDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    // Location: show meeting link host if present, otherwise fall back to event type
+    let locationStr = event.eventType || 'Online';
+    if (event.meetingLink) {
+      try {
+        locationStr = new URL(event.meetingLink).hostname.replace('www.', '');
+      } catch (_) {
+        locationStr = 'Online';
+      }
+    }
+
     return {
       ...event,
       type: eventDay < today ? 'past' : 'upcoming',
-      // Derive display month/day from the date string so there's a single source of truth
+      // Derive display month/day from startDateTime
       month: eventDate.toLocaleString('default', { month: 'short' }),
       day: String(eventDate.getDate()),
+      time: timeStr,
+      location: locationStr,
+      // Assign a rotating vibrant background color
+      bgColor: EVENT_COLORS[index % EVENT_COLORS.length],
     };
   });
 }
+
 
 // --- Components ---
 
@@ -107,20 +143,44 @@ function EventCard({ month, day, title, time, location, bgColor, type }) {
 }
 
 export default function Workshop() {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
+  const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [registrationMessage, setRegistrationMessage] = useState('');
 
-  // ── Event list: only 'date' (YYYY-MM-DD), 'type' is auto-derived ──
-  const rawEvents = [
-    { id: 1, date: '2026-04-10', title: 'Artificial Intelligence',  time: '15:00 - 17:00', location: 'Gujarat University',   bgColor: 'bg-[#14627a]' },
-    { id: 2, date: '2026-03-20', title: 'Web Development Bootcamp', time: '10:00 - 13:00', location: 'Tejeel HQ',            bgColor: 'bg-[#6fa7b8]' },
-    { id: 3, date: '2026-05-05', title: 'Data Science Summit',      time: '09:00 - 18:00', location: 'Ahmedabad IT Park',    bgColor: 'bg-[#14627a]' },
-    { id: 4, date: '2026-01-12', title: 'Robotics Workshop',        time: '10:00 - 12:00', location: 'Ahmedabad IT Park',    bgColor: 'bg-[#6fa7b8]' },
-    { id: 5, date: '2026-02-15', title: 'Cloud Computing',          time: '14:00 - 16:00', location: 'Tejeel HQ',            bgColor: 'bg-[#14627a]' },
-    { id: 6, date: '2025-12-28', title: 'Cyber Security',           time: '11:00 - 13:00', location: 'Online Webinar',       bgColor: 'bg-[#6fa7b8]' },
-  ];
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setIsLoading(true);
+        const data = await eventService.getEvents();
+        const classified = classifyEvents(data);
+        setEvents(classified);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching events:', err);
+        setError('Failed to load events. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchEvents();
+  }, []);
 
-  // Auto-classify each event based on today's date
-  const events = classifyEvents(rawEvents);
+  const handleRegisterClick = async () => {
+    const user = authService.getCurrentUser();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
+    // In a full implementation, you'd select a specific event to register for.
+    // Here we'll show a general registration success message or redirect to an apply flow.
+    setRegistrationMessage('Successfully registered interest for upcoming events!');
+    setTimeout(() => setRegistrationMessage(''), 3000);
+  };
+
 
   const displayed = filter === 'all' ? events : events.filter(e => e.type === filter);
 
@@ -192,28 +252,60 @@ export default function Workshop() {
         </div>
       </div>
 
+      {/* ── Toast Notification ── */}
+      <AnimatePresence>
+        {registrationMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-xl font-['Public_Sans:Medium',sans-serif]"
+          >
+            {registrationMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Events Grid ── */}
       <div className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto min-h-[400px]">
-          <motion.div 
-            layout
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-8"
-          >
-            <AnimatePresence mode="popLayout">
-              {displayed.map((event) => (
-                <EventCard key={event.id} {...event} />
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#14627a]"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-20">
+              <p className="text-red-500 text-lg">{error}</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="mt-4 px-6 py-2 bg-[#14627a] text-white rounded-lg"
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <>
+              <motion.div 
+                layout
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-8"
+              >
+                <AnimatePresence mode="popLayout">
+                  {displayed.map((event) => (
+                    <EventCard key={event._id || event.id} {...event} />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
 
-          {displayed.length === 0 && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center text-[#6d737a] text-lg mt-20"
-            >
-              No events found.
-            </motion.p>
+              {displayed.length === 0 && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center text-[#6d737a] text-lg mt-20"
+                >
+                  No events found.
+                </motion.p>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -246,6 +338,7 @@ export default function Workshop() {
             Register now to secure your spot and be part of our vibrant learning community
           </motion.p>
           <motion.button 
+            onClick={handleRegisterClick}
             whileHover={{ scale: 1.05, backgroundColor: "#ffd194" }}
             whileTap={{ scale: 0.95 }}
             className="bg-[#ffc27a] text-[#14627a] px-10 sm:px-12 py-4 sm:py-5 rounded-xl font-bold text-[16px] sm:text-[18px] transition-all shadow-xl"

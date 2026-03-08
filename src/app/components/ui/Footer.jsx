@@ -81,18 +81,9 @@ function CategorySection() {
         setLoading(true);
         setError(null);
 
+        // Returns [{ _id, name, slug }, ...] from the CategoryTag model
         const data = await courseService.getCategories();
-        
-        // Transform logic moved here or kept if service doesn't transform
-        const transformed = data.slice(0, 7).map((item, index) => ({
-          id: index + 1,
-          name: typeof item === "string"
-            ? item.charAt(0).toUpperCase() + item.slice(1).replace(/-/g, " ")
-            : item.name,
-          slug: typeof item === "string" ? item : item.slug ?? item.name,
-        }));
-
-        if (!cancelled) setCategories(transformed);
+        if (!cancelled) setCategories(data.slice(0, 7));
       } catch (err) {
         if (!cancelled) setError(err.message ?? "Failed to load categories");
       } finally {
@@ -115,7 +106,6 @@ function CategorySection() {
 
       <div className="space-y-2">
         {loading && (
-          // Skeleton placeholders while loading
           Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
@@ -130,13 +120,17 @@ function CategorySection() {
 
         {!loading && !error && categories.map((cat) => (
           <Link
-            key={cat.id}
+            key={cat._id}
             to={`/courses?category=${encodeURIComponent(cat.slug)}`}
             className={linkClass}
           >
             {cat.name}
           </Link>
         ))}
+
+        {!loading && !error && categories.length === 0 && (
+          <p className="text-[#6d737a] text-sm">No categories available.</p>
+        )}
       </div>
     </div>
   );
